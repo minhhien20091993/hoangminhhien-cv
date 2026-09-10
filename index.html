@@ -1673,11 +1673,12 @@
     const originalLabel = githubSaveBtn.textContent;
     githubSaveBtn.textContent = '… đang lưu';
     githubSaveBtn.disabled = true;
-    try{
-      // Bước 1: lấy sha hiện tại của file (GitHub yêu cầu sha để biết đang
-      // cập nhật đúng phiên bản nào, tránh ghi đè nhầm).
-      let sha;
-      const getRes = await fetch(`${apiBase}?ref=${encodeURIComponent(branch)}`, {
+
+    // Lấy sha mới nhất của file trên GitHub. cache:'no-store' để tránh
+    // trình duyệt trả về bản sha cũ đã cache, gây lỗi "does not match".
+    async function fetchSha(){
+      const getRes = await fetch(`${apiBase}?ref=${encodeURIComponent(branch)}&_=${Date.now()}`, {
+        cache: 'no-store',
         headers: {
           'Authorization': `Bearer ${cfg.token}`,
           'Accept': 'application/vnd.github+json'
@@ -1685,14 +1686,15 @@
       });
       if(getRes.ok){
         const info = await getRes.json();
-        sha = info.sha;
-      } else if(getRes.status !== 404){
-        const errBody = await getRes.json().catch(()=>({}));
-        throw new Error(errBody.message || `Lỗi khi đọc file (mã ${getRes.status})`);
+        return info.sha;
       }
+      if(getRes.status === 404) return undefined;
+      const errBody = await getRes.json().catch(()=>({}));
+      throw new Error(errBody.message || `Lỗi khi đọc file (mã ${getRes.status})`);
+    }
 
-      // Bước 2: ghi đè (hoặc tạo mới nếu file chưa có, khi getRes 404).
-      const putRes = await fetch(apiBase, {
+    async function putFile(sha){
+      return fetch(apiBase, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${cfg.token}`,
@@ -1706,6 +1708,19 @@
           ...(sha ? {sha} : {})
         })
       });
+    }
+
+    try{
+      let sha = await fetchSha();
+      let putRes = await putFile(sha);
+
+      // Sha lệch (thường do cache hoặc file vừa được sửa ở nơi khác) →
+      // lấy lại sha mới nhất và thử ghi lại đúng 1 lần trước khi báo lỗi.
+      if(!putRes.ok && putRes.status === 409){
+        sha = await fetchSha();
+        putRes = await putFile(sha);
+      }
+
       if(!putRes.ok){
         const errBody = await putRes.json().catch(()=>({}));
         throw new Error(errBody.message || `Lỗi khi ghi file (mã ${putRes.status})`);
