@@ -380,10 +380,22 @@
     <div class="side-actions">
       <button class="btn editing" id="editToggle">✎ bật chỉnh sửa</button>
       <button class="btn primary" id="printBtn">↓ tải PDF</button>
-      <button class="btn" id="exportBtn">💾 lưu file</button>
+      <button class="btn" id="exportBtn">💾 lưu data.json</button>
+      <button class="btn" id="githubSaveBtn">☁ lưu lên GitHub</button>
+      <button class="btn" id="githubCfgToggle">⚙ cài đặt GitHub</button>
       <button class="btn" id="resetBtn">↺ khôi phục gốc</button>
     </div>
-    <div class="side-note">Bấm "bật chỉnh sửa" và nhập mật khẩu để sửa nội dung. Nội dung tự lưu vào trình duyệt này (localStorage riêng cho từng máy/trình duyệt). Sửa xong, bấm "💾 lưu data.json": lần đầu trình duyệt sẽ hỏi chọn đúng file data.json trên máy để ghi đè, những lần sau chỉ cần bấm là lưu thẳng (Chrome/Edge). Trình duyệt khác sẽ tự tải file data.json mới về, bạn tự đẩy đè lên GitHub. Trang web sẽ đọc data.json mỗi khi tải lại. Khi in / tải PDF, các nút điều khiển sẽ tự ẩn.</div>
+    <div class="side-note" id="githubPanel" style="display:none;">
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
+        <input type="text" id="ghOwner" placeholder="Tên tài khoản GitHub" class="mono" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:11.5px;">
+        <input type="text" id="ghRepo" placeholder="Tên repo" class="mono" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:11.5px;">
+        <input type="text" id="ghBranch" placeholder="Nhánh (mặc định: main)" class="mono" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:11.5px;">
+        <input type="password" id="ghToken" placeholder="Personal access token" class="mono" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:11.5px;">
+        <button class="btn primary" id="ghCfgSave" style="margin-top:2px;">Lưu cài đặt</button>
+      </div>
+      Token chỉ lưu trong trình duyệt này (localStorage), không gửi đi đâu ngoài GitHub.
+    </div>
+    <div class="side-note">Bấm "bật chỉnh sửa" và nhập mật khẩu để sửa nội dung. Nội dung tự lưu vào trình duyệt này (localStorage riêng cho từng máy/trình duyệt). Sửa xong, bấm "☁ lưu lên GitHub" để commit thẳng data.json lên repo (cần cài đặt GitHub ở trên trước). Nút "💾 lưu data.json" vẫn dùng được để tải/ghi file về máy nếu muốn tự đẩy lên thủ công. Trang web sẽ đọc data.json mỗi khi tải lại. Khi in / tải PDF, các nút điều khiển sẽ tự ẩn.</div>
   </aside>
 
   <main class="stage">
@@ -1596,6 +1608,115 @@
         alert('Không lưu trực tiếp được, sẽ tải file về thay thế.');
         downloadJson(json);
       }
+    }
+  };
+
+  // ---------- Lưu thẳng lên GitHub (commit qua GitHub REST API) ----------
+  const GH_CFG_KEY = 'hmh-cv-github-cfg';
+
+  function loadGhConfig(){
+    try{ return JSON.parse(localStorage.getItem(GH_CFG_KEY)) || {}; }catch(e){ return {}; }
+  }
+  function saveGhConfig(cfg){
+    try{ localStorage.setItem(GH_CFG_KEY, JSON.stringify(cfg)); }catch(e){}
+  }
+
+  const githubPanel = document.getElementById('githubPanel');
+  const ghOwner = document.getElementById('ghOwner');
+  const ghRepo = document.getElementById('ghRepo');
+  const ghBranch = document.getElementById('ghBranch');
+  const ghToken = document.getElementById('ghToken');
+
+  (function fillGhConfig(){
+    const cfg = loadGhConfig();
+    ghOwner.value = cfg.owner || '';
+    ghRepo.value = cfg.repo || '';
+    ghBranch.value = cfg.branch || '';
+    ghToken.value = cfg.token || '';
+  })();
+
+  document.getElementById('githubCfgToggle').onclick = ()=>{
+    githubPanel.style.display = githubPanel.style.display === 'none' ? 'block' : 'none';
+  };
+
+  document.getElementById('ghCfgSave').onclick = ()=>{
+    saveGhConfig({
+      owner: ghOwner.value.trim(),
+      repo: ghRepo.value.trim(),
+      branch: ghBranch.value.trim() || 'main',
+      token: ghToken.value.trim()
+    });
+    const btn = document.getElementById('ghCfgSave');
+    btn.textContent = '✓ đã lưu cài đặt';
+    setTimeout(()=> btn.textContent = 'Lưu cài đặt', 1500);
+  };
+
+  // Chuyển chuỗi UTF-8 sang base64 đúng cách (btoa gốc không xử lý được
+  // ký tự tiếng Việt/emoji nếu không qua bước encode này).
+  function utf8ToBase64(str){
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+
+  const githubSaveBtn = document.getElementById('githubSaveBtn');
+  const GH_FILE_PATH = 'data.json';
+
+  githubSaveBtn.onclick = async ()=>{
+    const cfg = loadGhConfig();
+    if(!cfg.owner || !cfg.repo || !cfg.token){
+      alert('Chưa cài đặt GitHub. Bấm "⚙ cài đặt GitHub", nhập tài khoản, repo và token rồi bấm "Lưu cài đặt".');
+      githubPanel.style.display = 'block';
+      return;
+    }
+    const branch = cfg.branch || 'main';
+    const apiBase = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${GH_FILE_PATH}`;
+    const originalLabel = githubSaveBtn.textContent;
+    githubSaveBtn.textContent = '… đang lưu';
+    githubSaveBtn.disabled = true;
+    try{
+      // Bước 1: lấy sha hiện tại của file (GitHub yêu cầu sha để biết đang
+      // cập nhật đúng phiên bản nào, tránh ghi đè nhầm).
+      let sha;
+      const getRes = await fetch(`${apiBase}?ref=${encodeURIComponent(branch)}`, {
+        headers: {
+          'Authorization': `Bearer ${cfg.token}`,
+          'Accept': 'application/vnd.github+json'
+        }
+      });
+      if(getRes.ok){
+        const info = await getRes.json();
+        sha = info.sha;
+      } else if(getRes.status !== 404){
+        const errBody = await getRes.json().catch(()=>({}));
+        throw new Error(errBody.message || `Lỗi khi đọc file (mã ${getRes.status})`);
+      }
+
+      // Bước 2: ghi đè (hoặc tạo mới nếu file chưa có, khi getRes 404).
+      const putRes = await fetch(apiBase, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${cfg.token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Cập nhật CV — ${new Date().toISOString()}`,
+          content: utf8ToBase64(JSON.stringify(data, null, 2)),
+          branch,
+          ...(sha ? {sha} : {})
+        })
+      });
+      if(!putRes.ok){
+        const errBody = await putRes.json().catch(()=>({}));
+        throw new Error(errBody.message || `Lỗi khi ghi file (mã ${putRes.status})`);
+      }
+
+      githubSaveBtn.textContent = '✓ đã lưu lên GitHub';
+      setTimeout(()=> githubSaveBtn.textContent = originalLabel, 2000);
+    }catch(err){
+      alert('Không lưu lên GitHub được: ' + (err && err.message ? err.message : err));
+      githubSaveBtn.textContent = originalLabel;
+    }finally{
+      githubSaveBtn.disabled = false;
     }
   };
 
