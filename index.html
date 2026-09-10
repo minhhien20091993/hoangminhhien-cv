@@ -653,8 +653,46 @@
   // đọc/ghi nội dung nên đi qua L() thay vì đụng thẳng vào "data" để tự
   // động đúng ngôn ngữ hiện tại.
   function L(){ return data[data.lang] || data.vi; }
+  function otherLangKey(){ return data.lang === 'en' ? 'vi' : 'en'; }
+  function O(){ return data[otherLangKey()]; }
+
+  // Đánh dấu 1 mục vừa được tự tạo ở ngôn ngữ còn lại (khi thêm mới ở ngôn
+  // ngữ đang xem) để người dùng biết cần dịch, thay vì để trống/im lặng —
+  // đây cũng là hàm dùng để "vá" các mục bị lệch giữa 2 ngôn ngữ do dữ liệu
+  // cũ (trước khi có đồng bộ) hoặc do lỗi ở phiên bản trước.
+  function markUntranslated(key, item, targetLang){
+    const tag = targetLang === 'en' ? '[EN – cần dịch] ' : '[VI – cần dịch] ';
+    if(key === 'hobbies') return tag + item;
+    if(key === 'certs') return {name: tag + item.name, yr: item.yr};
+    if(key === 'skills') return {title: tag + item.title, text: item.text};
+    if(key === 'jobs') return {
+      company: item.company, dates: item.dates,
+      title: tag + item.title,
+      bullets: (item.bullets||[]).map(b=> tag + b)
+    };
+    if(key === 'projects') return {
+      tag: item.tag, title: tag + item.title, text: item.text,
+      chips: (item.chips||[]).slice(), image: item.image || null
+    };
+    return item;
+  }
+
+  // Đảm bảo bản VI và bản EN luôn có CÙNG SỐ LƯỢNG mục trong mỗi danh sách
+  // (certs/jobs/skills/hobbies/projects). Nội dung chữ có thể khác nhau,
+  // nhưng nếu 1 bên có mục mà bên kia không có, khi đổi ngôn ngữ người dùng
+  // sẽ thấy "mất nội dung" — nên bên thiếu sẽ được vá bằng bản sao (kèm nhãn
+  // cần dịch) thay vì để trống.
+  function reconcileLangs(){
+    ['certs','jobs','skills','hobbies','projects'].forEach(key=>{
+      const a = data.vi[key], b = data.en[key];
+      while(a.length < b.length) a.push(markUntranslated(key, b[a.length], 'vi'));
+      while(b.length < a.length) b.push(markUntranslated(key, a[b.length], 'en'));
+    });
+  }
 
   let data = loadData();
+  reconcileLangs();
+  saveData();
 
   function loadData(){
     try{
@@ -904,34 +942,58 @@
     });
 
     document.querySelectorAll('[data-del-job]').forEach(btn=>{
-      btn.onclick = ()=>{ L().jobs.splice(+btn.getAttribute('data-del-job'),1); saveData(); renderJobs(); };
+      btn.onclick = ()=>{
+        const i = +btn.getAttribute('data-del-job');
+        L().jobs.splice(i,1);
+        O().jobs.splice(i,1);
+        saveData(); renderJobs();
+      };
     });
     document.querySelectorAll('[data-add-bullet]').forEach(btn=>{
-      btn.onclick = ()=>{ L().jobs[+btn.getAttribute('data-add-bullet')].bullets.push(data.lang==='en' ? "New responsibility…" : "Mô tả công việc mới…"); saveData(); renderJobs(); };
+      btn.onclick = ()=>{
+        const i = +btn.getAttribute('data-add-bullet');
+        L().jobs[i].bullets.push(data.lang==='en' ? "New responsibility…" : "Mô tả công việc mới…");
+        if(O().jobs[i]) O().jobs[i].bullets.push(otherLangKey()==='en' ? "New responsibility…" : "Mô tả công việc mới…");
+        saveData(); renderJobs();
+      };
     });
     document.querySelectorAll('[data-del-bullet]').forEach(btn=>{
       btn.onclick = ()=>{
         const [ji,bi] = btn.getAttribute('data-del-bullet').split(':').map(Number);
         L().jobs[ji].bullets.splice(bi,1);
+        if(O().jobs[ji]) O().jobs[ji].bullets.splice(bi,1);
         saveData(); renderJobs();
       };
     });
     document.querySelectorAll('[data-del-skill]').forEach(btn=>{
-      btn.onclick = ()=>{ L().skills.splice(+btn.getAttribute('data-del-skill'),1); saveData(); renderSkills(); };
+      btn.onclick = ()=>{
+        const i = +btn.getAttribute('data-del-skill');
+        L().skills.splice(i,1);
+        O().skills.splice(i,1);
+        saveData(); renderSkills();
+      };
     });
     document.querySelectorAll('[data-del-proj]').forEach(btn=>{
-      btn.onclick = ()=>{ L().projects.splice(+btn.getAttribute('data-del-proj'),1); saveData(); renderProjects(); };
+      btn.onclick = ()=>{
+        const i = +btn.getAttribute('data-del-proj');
+        L().projects.splice(i,1);
+        O().projects.splice(i,1);
+        saveData(); renderProjects();
+      };
     });
     document.querySelectorAll('[data-del-chip]').forEach(btn=>{
       btn.onclick = ()=>{
         const [pi,ci] = btn.getAttribute('data-del-chip').split(':').map(Number);
         L().projects[pi].chips.splice(ci,1);
+        if(O().projects[pi]) O().projects[pi].chips.splice(ci,1);
         saveData(); renderProjects();
       };
     });
     document.querySelectorAll('[data-add-chip]').forEach(btn=>{
       btn.onclick = ()=>{
-        L().projects[+btn.getAttribute('data-add-chip')].chips.push(data.lang==='en' ? "New technology" : "Công nghệ mới");
+        const i = +btn.getAttribute('data-add-chip');
+        L().projects[i].chips.push(data.lang==='en' ? "New technology" : "Công nghệ mới");
+        if(O().projects[i]) O().projects[i].chips.push(otherLangKey()==='en' ? "New technology" : "Công nghệ mới");
         saveData(); renderProjects();
       };
     });
@@ -943,7 +1005,9 @@
     });
     document.querySelectorAll('[data-img-del]').forEach(btn=>{
       btn.onclick = ()=>{
-        L().projects[+btn.getAttribute('data-img-del')].image = null;
+        const i = +btn.getAttribute('data-img-del');
+        L().projects[i].image = null;
+        if(O().projects[i]) O().projects[i].image = null;
         saveData(); renderProjects();
       };
     });
@@ -955,16 +1019,27 @@
         const reader = new FileReader();
         reader.onload = ()=>{
           L().projects[i].image = reader.result;
+          if(O().projects[i]) O().projects[i].image = reader.result;
           saveData(); renderProjects();
         };
         reader.readAsDataURL(file);
       };
     });
     document.querySelectorAll('[data-del-hobby]').forEach(btn=>{
-      btn.onclick = ()=>{ L().hobbies.splice(+btn.getAttribute('data-del-hobby'),1); saveData(); renderHobbies(); };
+      btn.onclick = ()=>{
+        const i = +btn.getAttribute('data-del-hobby');
+        L().hobbies.splice(i,1);
+        O().hobbies.splice(i,1);
+        saveData(); renderHobbies();
+      };
     });
     document.querySelectorAll('[data-del-cert]').forEach(btn=>{
-      btn.onclick = ()=>{ L().certs.splice(+btn.getAttribute('data-del-cert'),1); saveData(); renderCerts(); };
+      btn.onclick = ()=>{
+        const i = +btn.getAttribute('data-del-cert');
+        L().certs.splice(i,1);
+        O().certs.splice(i,1);
+        saveData(); renderCerts();
+      };
     });
 
     // các phần tử vừa render lại (thêm/xoá dòng...) phải giữ đúng trạng thái
@@ -974,30 +1049,43 @@
     });
   }
 
-  document.getElementById('addJob').onclick = ()=>{
-    L().jobs.push(data.lang==='en'
+  function defaultItem(key, lang){
+    if(key === 'jobs') return lang==='en'
       ? {company:"New company", title:"Position / scope of work", dates:"MM/YYYY – present", bullets:["New responsibility…"]}
-      : {company:"Tên công ty mới", title:"Vị trí / phạm vi công việc", dates:"MM/YYYY – nay", bullets:["Mô tả công việc…"]});
+      : {company:"Tên công ty mới", title:"Vị trí / phạm vi công việc", dates:"MM/YYYY – nay", bullets:["Mô tả công việc…"]};
+    if(key === 'skills') return lang==='en'
+      ? {title:"New skill group", text:"Skill description…"}
+      : {title:"Nhóm kỹ năng mới", text:"Mô tả kỹ năng…"};
+    if(key === 'hobbies') return lang==='en' ? "New item" : "Mục mới";
+    if(key === 'projects') return lang==='en'
+      ? {tag:"project tag", title:"New project", text:"Project description…", chips:["Technology 1","Technology 2"], image:null}
+      : {tag:"nhãn dự án", title:"Tên dự án mới", text:"Mô tả dự án…", chips:["Công nghệ 1","Công nghệ 2"], image:null};
+    if(key === 'certs') return lang==='en' ? {name:"New certification", yr:"20xx"} : {name:"Tên chứng chỉ mới", yr:"20xx"};
+  }
+
+  document.getElementById('addJob').onclick = ()=>{
+    L().jobs.push(defaultItem('jobs', data.lang));
+    O().jobs.push(defaultItem('jobs', otherLangKey()));
     saveData(); renderJobs();
   };
   document.getElementById('addSkill').onclick = ()=>{
-    L().skills.push(data.lang==='en'
-      ? {title:"New skill group", text:"Skill description…"}
-      : {title:"Nhóm kỹ năng mới", text:"Mô tả kỹ năng…"});
+    L().skills.push(defaultItem('skills', data.lang));
+    O().skills.push(defaultItem('skills', otherLangKey()));
     saveData(); renderSkills();
   };
   document.getElementById('addHobby').onclick = ()=>{
-    L().hobbies.push(data.lang==='en' ? "New item" : "Mục mới");
+    L().hobbies.push(defaultItem('hobbies', data.lang));
+    O().hobbies.push(defaultItem('hobbies', otherLangKey()));
     saveData(); renderHobbies();
   };
   document.getElementById('addProject').onclick = ()=>{
-    L().projects.push(data.lang==='en'
-      ? {tag:"project tag", title:"New project", text:"Project description…", chips:["Technology 1","Technology 2"], image:null}
-      : {tag:"nhãn dự án", title:"Tên dự án mới", text:"Mô tả dự án…", chips:["Công nghệ 1","Công nghệ 2"], image:null});
+    L().projects.push(defaultItem('projects', data.lang));
+    O().projects.push(defaultItem('projects', otherLangKey()));
     saveData(); renderProjects();
   };
   document.getElementById('addCert').onclick = ()=>{
-    L().certs.push(data.lang==='en' ? {name:"New certification", yr:"20xx"} : {name:"Tên chứng chỉ mới", yr:"20xx"});
+    L().certs.push(defaultItem('certs', data.lang));
+    O().certs.push(defaultItem('certs', otherLangKey()));
     saveData(); renderCerts();
   };
 
