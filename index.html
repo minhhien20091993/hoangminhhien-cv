@@ -47,6 +47,7 @@
     position:sticky;
     top:0;
     height:100vh;
+    overflow-y:auto;
     display:flex;
     flex-direction:column;
     border-right:1px solid #232a33;
@@ -268,7 +269,7 @@
     .sidebar{position:relative;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;}
     .brand{margin-bottom:0;margin-right:auto;}
     nav.tabs{flex-direction:row;margin:0;}
-    .side-actions{flex-direction:row;margin:0 0 0 auto;border:none;padding:0;}
+    .side-actions{flex-direction:row;flex-wrap:wrap;justify-content:flex-end;margin:0 0 0 auto;border:none;padding:0;}
     .side-note{display:none;}
     .stage{padding:22px 14px 60px;}
     .page{padding:30px 22px;}
