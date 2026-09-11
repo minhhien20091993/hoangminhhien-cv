@@ -95,6 +95,10 @@
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
   .btn.primary:hover{background:var(--accent-deep);}
   .btn.editing{background:var(--accent-warm);border-color:var(--accent-warm);color:#241a0a;}
+  /* "chế độ chỉnh sửa" là nút mở khoá (có mật khẩu) — mọi nút thao tác khác
+     (kể cả nút bật/tắt sửa nội dung) chỉ hiện ra sau khi mở khoá. */
+  #editToggle,#exportBtn,#githubSaveBtn,#githubCfgToggle,#resetBtn{display:none;}
+  .unlocked #editToggle,.unlocked #exportBtn,.unlocked #githubSaveBtn,.unlocked #githubCfgToggle,.unlocked #resetBtn{display:inline-block;}
   .side-note{margin-top:14px;font-size:10.5px;color:#4d5561;line-height:1.5;}
 
   .stage{
@@ -277,6 +281,7 @@
     .avatar{display:none;}
     .cv-grid,.skills-grid{grid-template-columns:1fr;}
     .pf-row{flex-direction:column;}
+    .pf-row > .pf-card{flex:none;}
   }
 
   @media print{
@@ -379,7 +384,8 @@
     </div>
 
     <div class="side-actions">
-      <button class="btn editing" id="editToggle">✎ bật chỉnh sửa</button>
+      <button class="btn editing" id="editModeBtn">🔒 chế độ chỉnh sửa</button>
+      <button class="btn" id="editToggle">✎ bật chỉnh sửa</button>
       <button class="btn primary" id="printBtn">↓ tải PDF</button>
       <button class="btn" id="exportBtn">💾 lưu data.json</button>
       <button class="btn" id="githubSaveBtn">☁ lưu lên GitHub</button>
@@ -1443,11 +1449,14 @@
     };
   });
 
-  // ---------- edit mode (password protected) ----------
+  // ---------- chế độ chỉnh sửa (mở khoá bằng mật khẩu) ----------
   const EDIT_PASSWORD = "761311";
   const app = document.getElementById('app');
+  const editModeBtn = document.getElementById('editModeBtn');
   const editToggle = document.getElementById('editToggle');
+  let unlocked = false;
   let editing = false;
+
   function setEditing(state){
     editing = state;
     app.classList.toggle('editing', editing);
@@ -1456,18 +1465,36 @@
     });
     editToggle.textContent = editing ? '✓ đang chỉnh sửa' : '✎ bật chỉnh sửa';
   }
-  editToggle.onclick = ()=>{
-    if(editing){
+
+  function setUnlocked(state){
+    unlocked = state;
+    app.classList.toggle('unlocked', unlocked);
+    editModeBtn.textContent = unlocked ? '🔓 thoát chế độ chỉnh sửa' : '🔒 chế độ chỉnh sửa';
+    if(!unlocked){
+      // Khoá lại thì tắt luôn sửa nội dung và đóng bảng cài đặt GitHub
+      // (nếu đang mở), để không có gì "kẹt" ở trạng thái mở sau khi khoá.
       setEditing(false);
+      const panel = document.getElementById('githubPanel');
+      if(panel) panel.style.display = 'none';
+    }
+  }
+
+  editModeBtn.onclick = ()=>{
+    if(unlocked){
+      setUnlocked(false);
       return;
     }
-    const input = prompt('Nhập mật khẩu để bật chỉnh sửa:');
+    const input = prompt('Nhập mật khẩu để bật chế độ chỉnh sửa:');
     if(input === null) return; // huỷ
     if(input === EDIT_PASSWORD){
-      setEditing(true);
+      setUnlocked(true);
     } else {
-      alert('Sai mật khẩu. Không thể chỉnh sửa.');
+      alert('Sai mật khẩu. Không thể bật chế độ chỉnh sửa.');
     }
+  };
+
+  editToggle.onclick = ()=>{
+    setEditing(!editing);
   };
 
   document.getElementById('printBtn').onclick = async ()=>{
