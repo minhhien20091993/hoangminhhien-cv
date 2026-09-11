@@ -746,8 +746,8 @@
             "bullets": [
               "Quản lý và khai thác hệ thống cơ sở dữ liệu khách hàng, cước và doanh thu phục vụ hoạt động sản xuất kinh doanh của đơn vị.",
               "Thực hiện kiểm tra, đối soát, tổng hợp và xử lý dữ liệu nhằm đảm bảo tính chính xác, nhất quán và khả năng khai thác dữ liệu.",
-              "Sử dụng SQL Server, Oracle và các công cụ xử lý dữ liệu để truy vấn, kiểm tra và hỗ trợ khai thác dữ liệu phục vụ nghiệp vụ.",
-              "Theo dõi và xử lý các vấn đề phát sinh liên quan đến dữ liệu; phối hợp với các bộ phận liên quan để xác minh và khắc phục sai lệch.",
+              "Thiết kế và xây dựng hệ thống báo cáo phân tích đa chiều từ cơ sở dữ liệu, hỗ trợ theo dõi số liệu theo ngày, tuần, tháng, quý, năm và các chiều nghiệp vụ khác nhau.",
+              "Xây dựng Dashboard BI trực quan hóa dữ liệu doanh thu, hỗ trợ theo dõi kết quả kinh doanh theo đơn vị, chương trình, nhân viên và thời gian.",
               "Cung cấp và hỗ trợ khai thác dữ liệu phục vụ các bộ phận Kinh doanh, Chăm sóc khách hàng, Kế toán và Kỹ thuật.",
               "Quản lý quyền truy cập và hỗ trợ người dùng trong quá trình khai thác hệ thống và dữ liệu.",
               "Tham gia cải tiến quy trình vận hành, đề xuất các giải pháp hỗ trợ tự động hóa, nâng cao hiệu quả sử dụng hệ thống và giảm thao tác thủ công."
@@ -861,9 +861,9 @@
       "en": {
         "fields": {
           "cv.name": "Hoàng Minh Hiển",
-          "cv.role": "Database & Data",
-          "cv.summary": "Over 8 years of experience in IT system operations, user support, and technical troubleshooting. Experienced in account management, access control, software support, system monitoring, incident resolution, and cross-functional coordination between business and technical departments. Directly involved in installing, configuring, and deploying hardware/software for a hotel project; possess foundational knowledge of TCP/IP, IPv4/IPv6, LAN/WAN, as well as SQL Server and Oracle databases.",
-          "cv.dob": "19/05/1993",
+          "cv.role": "DATABASE & DATA OPERATIONS SPECIALIST",
+          "cv.summary": "Over 8 years of experience in managing, querying, and operating databases to support business operations. Proven track record of handling customer, billing, and revenue data; performing data validation, reconciliation, aggregation, and processing to ensure accuracy and continuous availability. Proficient in SQL Server, Oracle, and Excel for data querying, verification, and manipulation; experienced in system operations, user support, and cross-functional coordination to resolve data-related issues.",
+          "cv.dob": "May 19, 1993",
           "cv.email": "minhhien20091993@gmail.com",
           "cv.phone": "0949 666 323",
           "cv.addr": "Long Xuyen Ward, An Giang Province",
@@ -872,13 +872,13 @@
           "cv.cert2name": "CEFR – B1 (English)",
           "cv.cert2yr": "2022",
           "cv.edu1school": "University of Greenwich (FPT University Partnership)",
-          "cv.edu1major": "Informatics — Graduated with Merit",
+          "cv.edu1major": "Information Technology — Good",
           "cv.edu1yrs": "2011 – 2015",
           "cv.edu2school": "Hong Bang International University",
-          "cv.edu2major": "Master of Business Administration — Graduated with Merit",
+          "cv.edu2major": "Master of Business Administration (MBA) — Good",
           "cv.edu2yrs": "2018 – 2022",
           "pf.title": "Personal Portfolio",
-          "pf.sub": "Projects developed and deployed",
+          "pf.sub": "Projects Developed & Implemented",
           "side.tag": "An Giang",
           "lbl.hobbies": "TOOLS & TECHNOLOGIES",
           "lbl.info": "Personal Information",
@@ -901,91 +901,91 @@
             "yr": "2025"
           },
           {
-            "name": "New certification",
-            "yr": "20xx"
+            "name": "Cisco Networking Academy – Networking Basics",
+            "yr": "2025"
           }
         ],
         "jobs": [
           {
             "company": "VNPT An Giang",
-            "title": "Internal System & Database Administrator",
-            "dates": "01/2017 – 05/2026",
+            "title": "Billing Data Specialist – Database Management & Operations",
+            "dates": "Jan 2017 – May 2026",
             "bullets": [
-              "Administered, operated, and monitored internal systems supporting management, administration, and business operations.",
-              "Monitored system performance, inspected and resolved incidents to ensure stability, business continuity, and minimal downtime.",
-              "Managed accounts, permissions, and access controls; assisted end-users in operating internal systems and applications.",
-              "Received, analyzed, and coordinated the resolution of user issues/requests; supported business departments in system utilization.",
-              "Managed and queried customer, billing, and revenue databases; performed data checks and reconciliations to ensure operational accuracy.",
-              "Collaborated with Sales, Customer Care, Accounting, and Technical teams to handle issues related to systems, data, and business workflows.",
-              "Participated in operational process improvements and proposed automation solutions to enhance system efficiency and reduce manual tasks."
+              "Managed and extracted data from customer, billing, and revenue database systems to support business operations.",
+              "Performed data validation, reconciliation, aggregation, and processing to ensure accuracy, consistency, and data availability.",
+              "Utilized SQL Server, Oracle, and data processing tools to query, verify, and extract data for operational needs.",
+              "Monitored and resolved data issues; collaborated with relevant departments to verify and rectify discrepancies.",
+              "Provided and supported data extraction for Sales, Customer Care, Accounting, and Technical departments.",
+              "Managed access permissions and assisted end-users during system and data operations.",
+              "Participated in operational process improvements, proposing automation solutions to enhance system efficiency and reduce manual tasks."
             ]
           },
           {
             "company": "FREELANCER",
             "title": "System Deployment Team Lead",
-            "dates": "07/2026– 09/2026",
+            "dates": "Jul 2026 – Sep 2026",
             "bullets": [
-              "Organized and coordinated hardware and software deployment for a hotel project with approximately 300 rooms.",
+              "Organized and coordinated software and hardware deployment for a ~300-room hotel project.",
               "Assigned tasks, monitored progress, and coordinated deployment team members.",
-              "Installed, configured, and deployed software on computer systems and devices supporting hotel operations.",
-              "Provided user guidance and managed system handover after successful deployment."
+              "Installed, configured, and deployed software on computer systems and operational hardware for hotel management.",
+              "Provided user training/guidance and handed over the system upon project completion."
             ]
           }
         ],
         "skills": [
           {
-            "title": "IT Support & Troubleshooting",
-            "text": "User support; receiving and analyzing technical issues; handling problems related to systems, software, and user accounts; tracking issues until full resolution."
+            "title": "Databases",
+            "text": "SQL Server, Oracle; querying, extracting, verifying, and processing data for system operations and business activities."
           },
           {
-            "title": "Installation & Deployment",
-            "text": "Installing, configuring, and deploying software on computers and devices; supporting new system rollouts; guiding users and executing handovers post-deployment."
+            "title": "Data Operations & Management",
+            "text": "Data auditing, reconciliation, aggregation, and control; resolving issues related to data accuracy and consistency."
           },
           {
-            "title": "Computer Networking",
-            "text": "Solid foundational knowledge of TCP/IP, IPv4/IPv6, LAN/WAN; understanding connection principles and network device operation. Proficient in using Cisco Packet Tracer to simulate, configure, and test basic network topologies."
+            "title": "BI & Reporting Systems",
+            "text": "Building reports and BI Dashboards from operational data; visualizing and analyzing data to monitor business performance."
           },
           {
-            "title": "Systems & Databases",
-            "text": "Experienced in operating and monitoring internal systems, managing user accounts and access controls; utilizing SQL Server and Oracle for data extraction, verification, and support processing."
+            "title": "Excel & Data Analysis",
+            "text": "Advanced Excel utilization for data aggregation, validation, analysis, and tracking."
           }
         ],
         "hobbies": [
           "SQL Server",
-          "Oracle ",
-          "Microsoft Excel ",
+          "Oracle",
+          "Microsoft Excel",
           "Cisco Packet Tracer",
-          "Windows ",
+          "Windows",
           "Microsoft Office",
-          "New item"
+          "Dashboard BI"
         ],
         "projects": [
           {
-            "tag": "data management",
-            "title": "Standardizing Internal Access Authorization Process",
-            "text": "Restructured the authorization and access provisioning process for internal users, reducing access permission errors and shortening request handling time.",
+            "tag": "data governance",
+            "title": "Standardization of Internal Access Provisioning Process",
+            "text": "Redesigned authorization and access control processes for internal users, reducing unauthorized access incidents and response times for access requests.",
             "chips": [
               "SQL Server",
               "Access Control",
-              "Process"
+              "Workflows"
             ],
             "image": null
           },
           {
             "tag": "report automation",
-            "title": "Automated Billing & Revenue Reporting System with Excel + SQL",
-            "text": "Designed queries to aggregate billing and revenue data periodically and linked them with advanced Excel, significantly reducing manual tasks for the sales department.",
+            "title": "Automated Billing & Revenue Reporting Suite via Excel + SQL",
+            "text": "Designed recurring data aggregation queries for billing and revenue integrated with advanced Excel, significantly reducing manual effort for the sales department.",
             "chips": [
               "Advanced Excel",
               "SQL",
-              "Periodic Reporting"
+              "Periodic Reports"
             ],
             "image": null
           },
           {
             "tag": "system operations",
-            "title": "Internal System Monitoring & Incident Resolution",
-            "text": "Established periodic monitoring and system data reconciliation mechanisms to proactively detect operational risks and maintain system stability for business units.",
+            "title": "Internal System Monitoring & Incident Handling",
+            "text": "Established periodic system data monitoring and reconciliation mechanisms to detect operational risks early and maintain system stability for business units.",
             "chips": [
               "System Monitoring",
               "Data Reconciliation",
@@ -995,10 +995,10 @@
           },
           {
             "tag": "technical support",
-            "title": "Inter-departmental Technical Focal Point",
-            "text": "Served as the key technical point of contact resolving issues arising between Sales, Customer Care, Accounting, and Technical teams regarding system usage.",
+            "title": "Cross-Departmental Technical Focal Point",
+            "text": "Served as the primary technical liaison resolving cross-departmental system issues among Sales, Customer Care, Accounting, and Technical teams.",
             "chips": [
-              "Cross-departmental Coordination",
+              "Cross-functional Coordination",
               "Troubleshooting"
             ],
             "image": null
@@ -1006,7 +1006,7 @@
           {
             "tag": "REPORTING SYSTEM",
             "title": "Business Analysis & Report Development",
-            "text": "Designed and built a multi-dimensional analytical reporting system to track revenue and performance. The system enables flexible data analysis across day, week, month, quarter, year, and multiple business dimensions, supporting monitoring, evaluation, and decision-making.",
+            "text": "Designed and built a multidimensional analytical reporting system to track company revenue and business operations. The system enables users to flexibly analyze data by day, week, month, quarter, year, and multiple data dimensions, supporting business performance tracking, evaluation, and decision-making.",
             "chips": [
               "DevExpress",
               "SQL",
@@ -1017,8 +1017,8 @@
           },
           {
             "tag": "BI DASHBOARD DEVELOPMENT",
-            "title": "DEVELOPING BUSINESS PERFORMANCE DASHBOARD",
-            "text": "Designed and developed data visualization dashboards for revenue, supporting business performance tracking by business unit, campaign, employee, and timeframe. The dashboard delivers aggregated metrics, detailed data, revenue rankings, and daily trends, facilitating quick program evaluation and supporting operational management.",
+            "title": "BUSINESS PERFORMANCE MONITORING DASHBOARD DEVELOPMENT",
+            "text": "Designed and implemented a revenue data visualization dashboard to monitor business performance across units, campaigns, staff, and timeframes. The dashboard provides key metrics, detailed data, revenue rankings, and daily trends, enabling fast evaluation of campaign performance and supporting executive management.",
             "chips": [
               "Power BI",
               "Data Visualization",
