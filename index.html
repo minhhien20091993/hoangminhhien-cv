@@ -25,6 +25,11 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
+  /* Ẩn toàn bộ trang cho tới khi JS nạp xong dữ liệu và render đúng ngôn
+     ngữ (vi) — tránh hiện tượng nội dung tiếng Anh (viết sẵn trong HTML
+     tĩnh) lóe lên trước khi bị JS thay bằng tiếng Việt. */
+  body{opacity:0;transition:opacity .18s ease;}
+  body.ready{opacity:1;}
   body{
     font-family:'IBM Plex Sans',sans-serif;
     background:var(--bg);
@@ -1886,7 +1891,14 @@
   });
   renderAll();
   setEditing(false);
+  // Nội dung đã được render đúng ngôn ngữ (vi) — giờ mới cho hiện trang ra.
+  document.body.classList.add('ready');
 })();
+
+// Lớp bảo vệ: nếu vì lý do gì đó đoạn script chính ở trên gặp lỗi và
+// không chạy tới dòng thêm class 'ready', trang sẽ không bị kẹt trắng
+// vĩnh viễn — vẫn tự hiện ra sau 2.5s.
+setTimeout(()=> document.body.classList.add('ready'), 2500);
 </script>
 
 
