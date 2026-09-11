@@ -1034,7 +1034,8 @@
         const parsed = await res.json();
         if(!parsed.vi) parsed.vi = JSON.parse(JSON.stringify(defaultData.vi));
         if(!parsed.en) parsed.en = JSON.parse(JSON.stringify(defaultData.en));
-        if(!parsed.lang) parsed.lang = 'vi';
+        // Luôn mở mặc định bằng tiếng Việt, bất kể lần trước lưu là gì.
+        parsed.lang = 'vi';
         return parsed;
       }
     }catch(e){}
@@ -1072,7 +1073,8 @@
         // đã có cấu trúc đa ngôn ngữ nhưng thiếu 1 trong 2 bản (ví dụ vừa nâng cấp)
         if(!parsed.vi) parsed.vi = JSON.parse(JSON.stringify(defaultData.vi));
         if(!parsed.en) parsed.en = JSON.parse(JSON.stringify(defaultData.en));
-        if(!parsed.lang) parsed.lang = 'vi';
+        // Luôn mở mặc định bằng tiếng Việt, bất kể lần trước lưu là gì.
+        parsed.lang = 'vi';
         return parsed;
       }
     }catch(e){}
