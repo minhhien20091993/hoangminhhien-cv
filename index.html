@@ -1494,15 +1494,35 @@
     }
     const input = prompt('Nhập mật khẩu để bật chế độ chỉnh sửa:');
     if(input === null) return; // huỷ
-    if(input === EDIT_PASSWORD){
-      setUnlocked(true);
-    } else {
+    if(input !== EDIT_PASSWORD){
       alert('Sai mật khẩu. Không thể bật chế độ chỉnh sửa.');
+      return;
+    }
+    setUnlocked(true);
+
+    // Máy này chưa có cấu hình GitHub (chưa từng dán/nhập) → hỏi luôn 1 lần
+    // ngay đây, đỡ phải tự mở bảng cài đặt rồi tìm ô dán riêng.
+    const cfg = loadGhConfig();
+    if(!cfg.owner || !cfg.repo || !cfg.token){
+      const raw = prompt('Máy này chưa có cấu hình GitHub. Dán chuỗi cấu hình vào đây (để trống rồi bấm OK nếu muốn tự nhập tay trong bảng cài đặt):');
+      if(raw && raw.trim()){
+        if(!applyGhConfigString(raw)){
+          alert('Chuỗi cấu hình không hợp lệ — bạn có thể tự nhập tay trong "⚙ cài đặt GitHub".');
+        }
+      }
     }
   };
 
   editToggle.onclick = ()=>{
+    const turningOff = editing; // đang sửa → sắp tắt sửa
     setEditing(!editing);
+    // Vừa bấm để KẾT THÚC sửa nội dung (không phải lúc bật lên) → tự lưu
+    // data.json lên GitHub luôn, đỡ phải bấm thêm nút "☁ lưu lên GitHub".
+    // Chạy ngầm (silent): nếu máy chưa cấu hình GitHub thì bỏ qua, không
+    // làm phiền bằng alert.
+    if(turningOff){
+      saveDataToGithub(true);
+    }
   };
 
   document.getElementById('printBtn').onclick = async ()=>{
@@ -1718,6 +1738,33 @@
     setTimeout(()=> btn.textContent = '📋 sao chép cấu hình', 1800);
   };
 
+  // Dùng chung cho cả ô "dán vào" trong bảng cài đặt lẫn bước hỏi ngay sau
+  // khi mở khoá (nếu máy này chưa có cấu hình). Trả về true nếu áp dụng
+  // thành công, false nếu chuỗi không hợp lệ.
+  function applyGhConfigString(raw){
+    if(!raw || !raw.trim()) return false;
+    try{
+      // atob trả về chuỗi byte-Latin1; decode lại đúng UTF-8 (đối xứng với
+      // utf8ToBase64 lúc mã hoá) để không lỗi nếu sau này có ký tự có dấu.
+      const utf8 = decodeURIComponent(escape(atob(raw.trim())));
+      const parsed = JSON.parse(utf8);
+      const cfg = {
+        owner: (parsed.owner || '').trim(),
+        repo: (parsed.repo || '').trim(),
+        branch: (parsed.branch || 'main').trim() || 'main',
+        token: (parsed.token || '').trim()
+      };
+      ghOwner.value = cfg.owner;
+      ghRepo.value = cfg.repo;
+      ghBranch.value = cfg.branch;
+      ghToken.value = cfg.token;
+      saveGhConfig(cfg);
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
   document.getElementById('ghCfgPaste').onclick = ()=>{
     const btn = document.getElementById('ghCfgPaste');
     const raw = ghConfigStr.value.trim();
@@ -1725,24 +1772,10 @@
       alert('Dán chuỗi cấu hình vào ô phía trên trước.');
       return;
     }
-    try{
-      // atob trả về chuỗi byte-Latin1; decode lại đúng UTF-8 (đối xứng với
-      // utf8ToBase64 lúc mã hoá) để không lỗi nếu sau này có ký tự có dấu.
-      const utf8 = decodeURIComponent(escape(atob(raw)));
-      const parsed = JSON.parse(utf8);
-      ghOwner.value = parsed.owner || '';
-      ghRepo.value = parsed.repo || '';
-      ghBranch.value = parsed.branch || 'main';
-      ghToken.value = parsed.token || '';
-      saveGhConfig({
-        owner: ghOwner.value.trim(),
-        repo: ghRepo.value.trim(),
-        branch: ghBranch.value.trim() || 'main',
-        token: ghToken.value.trim()
-      });
+    if(applyGhConfigString(raw)){
       btn.textContent = '✓ đã điền & lưu';
       setTimeout(()=> btn.textContent = '📥 dán vào', 1800);
-    }catch(e){
+    } else {
       alert('Chuỗi cấu hình không hợp lệ. Kiểm tra lại đã copy đủ chưa.');
     }
   };
@@ -1756,12 +1789,17 @@
   const githubSaveBtn = document.getElementById('githubSaveBtn');
   const GH_FILE_PATH = 'data.json';
 
-  githubSaveBtn.onclick = async ()=>{
+  // Dùng chung cho cả bấm nút "☁ lưu lên GitHub" lẫn tự động lưu khi tắt
+  // "bật chỉnh sửa". silent=true thì bỏ qua thông báo nếu chưa cấu hình
+  // GitHub (tự động chạy ngầm, không nên làm phiền bằng alert).
+  async function saveDataToGithub(silent){
     const cfg = loadGhConfig();
     if(!cfg.owner || !cfg.repo || !cfg.token){
-      alert('Chưa cài đặt GitHub. Bấm "⚙ cài đặt GitHub", nhập tài khoản, repo và token rồi bấm "Lưu cài đặt".');
-      githubPanel.style.display = 'block';
-      return;
+      if(!silent){
+        alert('Chưa cài đặt GitHub. Bấm "⚙ cài đặt GitHub", nhập tài khoản, repo và token rồi bấm "Lưu cài đặt".');
+        githubPanel.style.display = 'block';
+      }
+      return false;
     }
     const branch = cfg.branch || 'main';
     const apiBase = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${GH_FILE_PATH}`;
@@ -1823,13 +1861,23 @@
 
       githubSaveBtn.textContent = '✓ đã lưu lên GitHub';
       setTimeout(()=> githubSaveBtn.textContent = originalLabel, 2000);
+      return true;
     }catch(err){
-      alert('Không lưu lên GitHub được: ' + (err && err.message ? err.message : err));
-      githubSaveBtn.textContent = originalLabel;
+      // Tự động lưu (silent) thất bại thì không làm phiền bằng alert giữa
+      // lúc đang thao tác — chỉ đổi tạm chữ trên nút để báo hiệu.
+      if(!silent){
+        alert('Không lưu lên GitHub được: ' + (err && err.message ? err.message : err));
+      } else {
+        githubSaveBtn.textContent = '⚠ tự động lưu GitHub thất bại';
+        setTimeout(()=> githubSaveBtn.textContent = originalLabel, 2500);
+      }
+      return false;
     }finally{
       githubSaveBtn.disabled = false;
     }
-  };
+  }
+
+  githubSaveBtn.onclick = ()=> saveDataToGithub(false);
 
   document.querySelectorAll('.lang-btn').forEach(b=>{
     b.classList.toggle('active', b.getAttribute('data-lang') === data.lang);
