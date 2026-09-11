@@ -300,7 +300,7 @@
       },
       {
         "tag": "HỆ THỐNG BÁO CÁO",
-        "title": "[EN – cần dịch] Phân tích nghiệp vụ & Phát triển báo cáo",
+        "title": "Phân tích nghiệp vụ & Phát triển báo cáo",
         "text": "Thiết kế và xây dựng hệ thống báo cáo phân tích đa chiều phục vụ theo dõi doanh thu và tình hình kinh doanh của đơn vị. Hệ thống cho phép người dùng linh hoạt phân tích số liệu theo ngày, tuần, tháng, quý, năm và nhiều chiều dữ liệu khác nhau, hỗ trợ công tác theo dõi, đánh giá và ra quyết định kinh doanh.",
         "chips": [
           "DevExpress",
