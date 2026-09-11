@@ -104,6 +104,10 @@
      (kể cả nút bật/tắt sửa nội dung) chỉ hiện ra sau khi mở khoá. */
   #editToggle,#exportBtn,#githubSaveBtn,#githubCfgToggle,#resetBtn{display:none;}
   .unlocked #editToggle,.unlocked #exportBtn,.unlocked #githubSaveBtn,.unlocked #githubCfgToggle,.unlocked #resetBtn{display:inline-block;}
+  /* Đã tích hợp lưu data.json / lưu lên GitHub ở nơi khác — chỉ ẩn 2 nút
+     này trên giao diện, KHÔNG xoá code/logic phía sau (đề phòng cần dùng
+     lại sau này). */
+  #exportBtn,.unlocked #exportBtn,#githubSaveBtn,.unlocked #githubSaveBtn{display:none !important;}
   .side-note{margin-top:14px;font-size:10.5px;color:#4d5561;line-height:1.5;}
 
   .stage{
