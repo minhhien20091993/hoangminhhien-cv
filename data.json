@@ -31,7 +31,7 @@
           "pf.title": "Portfolio cá nhân",
           "pf.sub": "Những dự án đã phát triển và triển khai",
           "side.tag": "An Giang",
-          "lbl.hobbies": "LĨNH VỰC QUAN TÂM",
+          "lbl.hobbies": "CÔNG CỤ & CÔNG NGHỆ",
           "lbl.info": "Thông tin cá nhân",
           "lbl.certs": "Chứng chỉ",
           "lbl.edu": "Học vấn",
@@ -73,7 +73,7 @@
           },
           {
             "company": "FREELANCER",
-            "title": "Tổ trưởng Triển khai Hệ thống – Freelancer",
+            "title": "Tổ trưởng Triển khai Hệ thống",
             "dates": "07/2026– 09/2026",
             "bullets": [
               "Tổ chức và điều phối triển khai phần mềm, phần cứng cho dự án khách sạn quy mô khoảng 300 phòng.",
@@ -102,12 +102,12 @@
           }
         ],
         "hobbies": [
-          "Công nghệ thông tin",
-          "Hệ thống & dữ liệu",
-          "Tự động hóa",
-          "Công nghệ mới",
-          "Du lịch",
-          "Âm nhạc"
+          "SQL Server",
+          "Oracle ",
+          "Microsoft Excel ",
+          "Cisco Packet Tracer",
+          "Windows ",
+          "Microsoft Office"
         ],
         "projects": [
           {
