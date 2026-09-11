@@ -143,8 +143,8 @@
   .btn.editing{background:var(--accent-warm);border-color:var(--accent-warm);color:#241a0a;}
   /* "chế độ chỉnh sửa" là nút mở khoá (có mật khẩu) — mọi nút thao tác khác
      (kể cả nút bật/tắt sửa nội dung) chỉ hiện ra sau khi mở khoá. */
-  #editToggle,#exportBtn,#githubSaveBtn,#githubCfgToggle,#resetBtn{display:none;}
-  .unlocked #editToggle,.unlocked #exportBtn,.unlocked #githubSaveBtn,.unlocked #githubCfgToggle,.unlocked #resetBtn{display:inline-block;}
+  #editToggle,#exportBtn,#githubSaveBtn,#githubCfgToggle,#resetBtn,#translateCfgToggle{display:none;}
+  .unlocked #editToggle,.unlocked #exportBtn,.unlocked #githubSaveBtn,.unlocked #githubCfgToggle,.unlocked #resetBtn,.unlocked #translateCfgToggle{display:inline-block;}
   /* Đã tích hợp lưu data.json / lưu lên GitHub ở nơi khác — chỉ ẩn 2 nút
      này trên giao diện, KHÔNG xoá code/logic phía sau (đề phòng cần dùng
      lại sau này). */
@@ -446,7 +446,34 @@
       <button class="btn" id="exportBtn">💾 lưu data.json</button>
       <button class="btn" id="githubSaveBtn">☁ lưu lên GitHub</button>
       <button class="btn" id="githubCfgToggle">⚙ cài đặt GitHub</button>
+      <button class="btn" id="translateCfgToggle">🌐 dịch VI → EN (AI)</button>
       <button class="btn" id="resetBtn">↺ khôi phục gốc</button>
+    </div>
+    <div class="side-note" id="translatePanel" style="display:none;">
+      <div style="margin-bottom:10px;">Dịch nội dung tiếng Việt của loại CV đang xem sang tiếng Anh, bằng Gemini API của bạn (tự động 1 click) hoặc bằng AI khác (copy/dán thủ công).</div>
+
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--sidebar-ink-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Cách 1 — tự động bằng Gemini API</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
+        <input type="password" id="geminiKeyInput" placeholder="Gemini API key" class="mono" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:11.5px;">
+        <input type="text" id="geminiModelInput" placeholder="Tên model (mặc định: gemini-2.5-flash)" class="mono" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:11.5px;">
+        <button class="btn" id="geminiCfgSave">Lưu key</button>
+      </div>
+      <div style="margin-bottom:10px;">Key chỉ lưu trong trình duyệt này (localStorage), gửi thẳng tới Google khi bấm dịch — không đi qua máy chủ nào khác. Nếu Google đổi tên model, sửa lại ô "tên model" ở trên theo model hiện hành trong Google AI Studio.</div>
+      <button class="btn primary" id="geminiTranslateBtn" style="width:100%;margin-bottom:12px;">✨ Dịch tự động (Gemini)</button>
+
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--sidebar-ink-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;border-top:1px solid #2a313c;padding-top:10px;">Cách 2 — copy/dán thủ công (AI khác)</div>
+      <ol style="margin:0 0 8px;padding-left:18px;">
+        <li style="margin-bottom:8px;">
+          <button class="btn" id="translateCopyBtn" style="width:100%;margin-bottom:4px;">1) 📋 Sao chép nội dung + hướng dẫn dịch</button>
+          <div>Mở Claude/ChatGPT, dán vào, chờ AI trả lời.</div>
+        </li>
+        <li>
+          <div style="margin-bottom:4px;">Dán NGUYÊN VĂN câu trả lời của AI (chỉ phần JSON, không kèm lời giải thích) vào ô dưới:</div>
+          <textarea id="translatePasteArea" class="mono" rows="5" placeholder="Dán JSON bản dịch AI trả về vào đây" style="width:100%;background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:10.5px;resize:vertical;"></textarea>
+          <button class="btn" id="translateApplyBtn" style="width:100%;margin-top:6px;">2) ✅ Áp dụng bản dịch vào bản EN</button>
+        </li>
+      </ol>
+      <div style="color:#c98a3f;">Dù dịch theo cách nào, bấm áp dụng/dịch tự động sẽ GHI ĐÈ toàn bộ bản tiếng Anh hiện tại của loại CV đang xem — nhớ kiểm tra lại sau khi dịch.</div>
     </div>
     <div class="side-note" id="githubPanel" style="display:none;">
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
@@ -1459,6 +1486,223 @@
     renderAll();
   }
   document.getElementById('addTypeBtn').onclick = addType;
+
+  // ---------- dịch VI → EN bằng AI (copy/dán thủ công, không cần API key) ----------
+  async function copyToClipboard(text){
+    try{
+      await navigator.clipboard.writeText(text);
+      return true;
+    }catch(e){
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      }catch(e2){ return false; }
+    }
+  }
+
+  // Loại bỏ ảnh (base64, rất nặng và không liên quan tới dịch) khỏi payload
+  // gửi cho AI, chỉ giữ lại phần chữ cần dịch.
+  function buildTranslatePayload(){
+    const t = curType();
+    return {
+      fields: t.vi.fields,
+      certs: t.vi.certs,
+      jobs: t.vi.jobs,
+      skills: t.vi.skills,
+      hobbies: t.vi.hobbies,
+      projects: t.vi.projects.map(p=> ({tag:p.tag, title:p.title, text:p.text, chips:p.chips}))
+    };
+  }
+
+  function buildTranslatePrompt(){
+    const payload = buildTranslatePayload();
+    return [
+      'Dịch toàn bộ nội dung CV dưới đây từ tiếng Việt sang tiếng Anh, văn phong chuyên nghiệp, phù hợp để đưa vào một bản CV/resume xin việc ngành IT.',
+      'YÊU CẦU BẮT BUỘC:',
+      '- Chỉ trả lời DUY NHẤT 1 khối JSON hợp lệ, giữ NGUYÊN cấu trúc và tên field/key như bản gốc (không thêm/bớt/đổi tên key).',
+      '- Giữ nguyên số lượng phần tử trong mỗi mảng (certs, jobs, jobs[].bullets, skills, hobbies, projects, projects[].chips), đúng thứ tự như bản gốc.',
+      '- Không dịch tên riêng / tên công ty / tên thương hiệu công nghệ (VD: VNPT, Oracle, SQL Server).',
+      '- Ngày tháng dạng "dd/mm/yyyy" có thể giữ nguyên hoặc chuyển sang định dạng tiếng Anh thông dụng (VD: "19/05/1993" → "May 19, 1993"), miễn nhất quán trong toàn bộ bản dịch.',
+      '- Không thêm lời giải thích, không thêm markdown, không bọc trong dấu ```.',
+      '',
+      'Dữ liệu cần dịch (JSON):',
+      JSON.stringify(payload, null, 2)
+    ].join('\n');
+  }
+
+  // AI thường trả lời kèm ```json ... ``` — bóc phần bọc đó ra trước khi parse.
+  function extractJsonBlock(raw){
+    let s = (raw || '').trim();
+    s = s.replace(/^```(?:json)?/i, '').replace(/```$/,'').trim();
+    return s;
+  }
+
+  const translateCfgToggle = document.getElementById('translateCfgToggle');
+  const translatePanel = document.getElementById('translatePanel');
+  const translateCopyBtn = document.getElementById('translateCopyBtn');
+  const translatePasteArea = document.getElementById('translatePasteArea');
+  const translateApplyBtn = document.getElementById('translateApplyBtn');
+  const geminiKeyInput = document.getElementById('geminiKeyInput');
+  const geminiModelInput = document.getElementById('geminiModelInput');
+  const geminiCfgSave = document.getElementById('geminiCfgSave');
+  const geminiTranslateBtn = document.getElementById('geminiTranslateBtn');
+
+  translateCfgToggle.onclick = ()=>{
+    translatePanel.style.display = translatePanel.style.display === 'none' ? 'block' : 'none';
+  };
+
+  translateCopyBtn.onclick = async ()=>{
+    const text = buildTranslatePrompt();
+    const ok = await copyToClipboard(text);
+    if(ok){
+      translateCopyBtn.textContent = '✓ đã sao chép — dán vào Claude/ChatGPT';
+    } else {
+      // Copy tự động thất bại (thường do trình duyệt chặn) → hiện tạm nội
+      // dung ngay trong ô dán kết quả để người dùng tự bôi đen, copy tay.
+      translatePasteArea.value = text;
+      translateCopyBtn.textContent = '⚠ copy tự động thất bại — xem ô bên dưới';
+    }
+    setTimeout(()=> translateCopyBtn.textContent = '1) 📋 Sao chép nội dung + hướng dẫn dịch', 2500);
+  };
+
+  // Dùng chung cho cả 2 cách (Gemini tự động lẫn dán tay từ AI khác): nhận
+  // 1 object JSON đã đúng cấu trúc (fields/certs/jobs/skills/hobbies/projects)
+  // và ghi đè vào bản tiếng Anh của loại CV đang xem.
+  function applyTranslatedJson(parsed){
+    const t = curType();
+    const viProjImages = t.vi.projects.map(p=> p.image || null);
+    t.en.fields = Object.assign({}, t.vi.fields, parsed.fields || {});
+    if(Array.isArray(parsed.certs)) t.en.certs = parsed.certs;
+    if(Array.isArray(parsed.jobs)) t.en.jobs = parsed.jobs;
+    if(Array.isArray(parsed.skills)) t.en.skills = parsed.skills;
+    if(Array.isArray(parsed.hobbies)) t.en.hobbies = parsed.hobbies;
+    if(Array.isArray(parsed.projects)){
+      t.en.projects = parsed.projects.map((p,i)=> ({
+        tag: p.tag || '',
+        title: p.title || '',
+        text: p.text || '',
+        chips: Array.isArray(p.chips) ? p.chips : [],
+        image: viProjImages[i] !== undefined ? viProjImages[i] : null
+      }));
+    }
+    // Nếu AI dịch thiếu/thừa phần tử so với bản gốc, tự vá bằng bản sao (kèm
+    // nhãn cần dịch) thay vì để giao diện lệch số lượng giữa 2 ngôn ngữ.
+    reconcileLangs();
+    saveData();
+
+    // Chuyển luôn sang xem bản EN để kiểm tra kết quả ngay.
+    data.lang = 'en';
+    document.querySelectorAll('.lang-btn').forEach(b=> b.classList.toggle('active', b.getAttribute('data-lang') === 'en'));
+    renderAll();
+  }
+
+  translateApplyBtn.onclick = ()=>{
+    const raw = translatePasteArea.value;
+    if(!raw || !raw.trim()){
+      alert('Dán JSON bản dịch AI trả về vào ô phía trên trước.');
+      return;
+    }
+    let parsed;
+    try{
+      parsed = JSON.parse(extractJsonBlock(raw));
+    }catch(e){
+      alert('Không đọc được JSON. Kiểm tra đã dán đủ và đúng định dạng JSON (không kèm lời giải thích ngoài khối JSON) chưa.');
+      return;
+    }
+    if(!confirm('Áp dụng bản dịch này? Toàn bộ bản tiếng Anh hiện tại của loại CV đang xem sẽ bị GHI ĐÈ.')) return;
+    applyTranslatedJson(parsed);
+    translatePasteArea.value = '';
+    alert('Đã áp dụng bản dịch vào bản tiếng Anh. Kiểm tra lại nội dung và chỉnh sửa thêm nếu cần.');
+  };
+
+  // ---------- dịch tự động 1 click bằng Gemini API (key của người dùng) ----------
+  const GEMINI_CFG_KEY = 'hmh-cv-gemini-cfg';
+  const GEMINI_DEFAULT_MODEL = 'gemini-2.5-flash';
+
+  function loadGeminiConfig(){
+    try{ return JSON.parse(localStorage.getItem(GEMINI_CFG_KEY)) || {}; }catch(e){ return {}; }
+  }
+  function saveGeminiConfig(cfg){
+    try{ localStorage.setItem(GEMINI_CFG_KEY, JSON.stringify(cfg)); }catch(e){}
+  }
+  (function fillGeminiConfig(){
+    const cfg = loadGeminiConfig();
+    geminiKeyInput.value = cfg.key || '';
+    geminiModelInput.value = cfg.model || '';
+  })();
+
+  geminiCfgSave.onclick = ()=>{
+    saveGeminiConfig({
+      key: geminiKeyInput.value.trim(),
+      model: geminiModelInput.value.trim()
+    });
+    const original = geminiCfgSave.textContent;
+    geminiCfgSave.textContent = '✓ đã lưu';
+    setTimeout(()=> geminiCfgSave.textContent = original, 1500);
+  };
+
+  geminiTranslateBtn.onclick = async ()=>{
+    const cfg = loadGeminiConfig();
+    if(!cfg.key){
+      alert('Chưa nhập Gemini API key. Dán key vào ô phía trên rồi bấm "Lưu key".');
+      return;
+    }
+    if(!confirm('Dịch tự động bằng Gemini? Toàn bộ bản tiếng Anh hiện tại của loại CV đang xem sẽ bị GHI ĐÈ.')) return;
+
+    const model = cfg.model || GEMINI_DEFAULT_MODEL;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(cfg.key)}`;
+    const prompt = buildTranslatePrompt();
+
+    const originalLabel = geminiTranslateBtn.textContent;
+    geminiTranslateBtn.textContent = '… đang dịch bằng Gemini';
+    geminiTranslateBtn.disabled = true;
+
+    try{
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role:'user', parts: [{ text: prompt }] }],
+          // Ép Gemini trả về đúng 1 khối JSON, khỏi phải bóc tách markdown.
+          generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
+        })
+      });
+      const body = await res.json().catch(()=>({}));
+
+      if(!res.ok){
+        const msg = (body && body.error && body.error.message) || `Lỗi HTTP ${res.status}`;
+        throw new Error(msg + (res.status === 404 ? ' — kiểm tra lại tên model, có thể model đã bị Google đổi/ngừng hỗ trợ.' : ''));
+      }
+
+      const textOut = body && body.candidates && body.candidates[0] && body.candidates[0].content
+        && body.candidates[0].content.parts && body.candidates[0].content.parts[0]
+        && body.candidates[0].content.parts[0].text;
+      if(!textOut) throw new Error('Gemini không trả về nội dung dịch (có thể bị chặn bởi bộ lọc an toàn của Google).');
+
+      let parsed;
+      try{
+        parsed = JSON.parse(extractJsonBlock(textOut));
+      }catch(e){
+        throw new Error('Gemini trả về nội dung không đúng định dạng JSON. Thử bấm dịch lại, hoặc dùng "Cách 2" bên dưới.');
+      }
+
+      applyTranslatedJson(parsed);
+      geminiTranslateBtn.textContent = '✓ đã dịch xong';
+      alert('Đã dịch tự động và áp dụng vào bản tiếng Anh. Kiểm tra lại nội dung và chỉnh sửa thêm nếu cần.');
+    }catch(err){
+      alert('Dịch tự động thất bại: ' + (err && err.message ? err.message : err));
+    }finally{
+      geminiTranslateBtn.disabled = false;
+      setTimeout(()=> geminiTranslateBtn.textContent = originalLabel, 2000);
+    }
+  };
 
   document.getElementById('avatarInput').onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
