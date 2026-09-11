@@ -401,6 +401,14 @@
         <button class="btn primary" id="ghCfgSave" style="margin-top:2px;">Lưu cài đặt</button>
       </div>
       Token chỉ lưu trong trình duyệt này (localStorage), không gửi đi đâu ngoài GitHub.
+
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid #2a313c;display:flex;flex-direction:column;gap:6px;">
+        <div>Chuyển cài đặt sang máy/điện thoại khác: bấm "sao chép", dán vào ô bên dưới ở máy kia rồi bấm "dán vào".</div>
+        <button class="btn" id="ghCfgCopy" style="align-self:flex-start;">📋 sao chép cấu hình</button>
+        <textarea id="ghConfigStr" placeholder="Dán chuỗi cấu hình vào đây" class="mono" rows="3" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:10.5px;resize:vertical;"></textarea>
+        <button class="btn" id="ghCfgPaste" style="align-self:flex-start;">📥 dán vào</button>
+        <div style="color:#c98a3f;">Chuỗi này chứa nguyên token — giữ kín như mật khẩu, không đăng công khai.</div>
+      </div>
     </div>
     <div class="side-note">Bấm "bật chỉnh sửa" và nhập mật khẩu để sửa nội dung. Nội dung tự lưu vào trình duyệt này (localStorage riêng cho từng máy/trình duyệt). Sửa xong, bấm "☁ lưu lên GitHub" để commit thẳng data.json lên repo (cần cài đặt GitHub ở trên trước). Nút "💾 lưu data.json" vẫn dùng được để tải/ghi file về máy nếu muốn tự đẩy lên thủ công. Trang web sẽ đọc data.json mỗi khi tải lại. Khi in / tải PDF, các nút điều khiển sẽ tự ẩn.</div>
   </aside>
@@ -1677,6 +1685,66 @@
     const btn = document.getElementById('ghCfgSave');
     btn.textContent = '✓ đã lưu cài đặt';
     setTimeout(()=> btn.textContent = 'Lưu cài đặt', 1500);
+  };
+
+  // Chuỗi cấu hình: gói owner/repo/branch/token hiện đang nhập vào 1 chuỗi
+  // base64 để copy sang máy/điện thoại khác, dán vào là điền đủ 4 ô luôn,
+  // không cần gõ lại token dài dòng từng ký tự.
+  const ghConfigStr = document.getElementById('ghConfigStr');
+
+  document.getElementById('ghCfgCopy').onclick = async ()=>{
+    const btn = document.getElementById('ghCfgCopy');
+    const payload = {
+      owner: ghOwner.value.trim(),
+      repo: ghRepo.value.trim(),
+      branch: ghBranch.value.trim() || 'main',
+      token: ghToken.value.trim()
+    };
+    if(!payload.owner || !payload.repo || !payload.token){
+      alert('Nhập đủ tài khoản, repo và token trước, rồi mới sao chép.');
+      return;
+    }
+    const encoded = utf8ToBase64(JSON.stringify(payload));
+    try{
+      await navigator.clipboard.writeText(encoded);
+      btn.textContent = '✓ đã sao chép';
+    }catch(e){
+      // Trình duyệt chặn clipboard (thường do không phải HTTPS, hoặc
+      // thiếu thao tác người dùng trực tiếp) → hiện sẵn trong ô dán để
+      // người dùng tự bôi đen, copy thủ công.
+      ghConfigStr.value = encoded;
+      btn.textContent = '✓ xem ở ô bên dưới';
+    }
+    setTimeout(()=> btn.textContent = '📋 sao chép cấu hình', 1800);
+  };
+
+  document.getElementById('ghCfgPaste').onclick = ()=>{
+    const btn = document.getElementById('ghCfgPaste');
+    const raw = ghConfigStr.value.trim();
+    if(!raw){
+      alert('Dán chuỗi cấu hình vào ô phía trên trước.');
+      return;
+    }
+    try{
+      // atob trả về chuỗi byte-Latin1; decode lại đúng UTF-8 (đối xứng với
+      // utf8ToBase64 lúc mã hoá) để không lỗi nếu sau này có ký tự có dấu.
+      const utf8 = decodeURIComponent(escape(atob(raw)));
+      const parsed = JSON.parse(utf8);
+      ghOwner.value = parsed.owner || '';
+      ghRepo.value = parsed.repo || '';
+      ghBranch.value = parsed.branch || 'main';
+      ghToken.value = parsed.token || '';
+      saveGhConfig({
+        owner: ghOwner.value.trim(),
+        repo: ghRepo.value.trim(),
+        branch: ghBranch.value.trim() || 'main',
+        token: ghToken.value.trim()
+      });
+      btn.textContent = '✓ đã điền & lưu';
+      setTimeout(()=> btn.textContent = '📥 dán vào', 1800);
+    }catch(e){
+      alert('Chuỗi cấu hình không hợp lệ. Kiểm tra lại đã copy đủ chưa.');
+    }
   };
 
   // Chuyển chuỗi UTF-8 sang base64 đúng cách (btoa gốc không xử lý được
