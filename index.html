@@ -88,6 +88,47 @@
   .lang-btn:hover{color:#e9ebee;}
   .lang-btn.active{background:var(--accent);color:#fff;}
 
+  /* CV loại (Dữ liệu / Helpdesk / ...) — chỉ hiện khi đã mở khoá chỉnh sửa;
+     khách xem trang chỉ thấy đúng 1 loại CV được đặt làm mặc định. */
+  .type-switch-wrap{display:none;flex-direction:column;gap:7px;margin-top:14px;}
+  .unlocked .type-switch-wrap{display:flex;}
+  .type-switch-title{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--sidebar-ink-dim);
+    text-transform:uppercase;letter-spacing:.06em;
+  }
+  .type-switch{display:flex;flex-direction:column;gap:4px;}
+  .type-pill{
+    display:flex;align-items:center;gap:5px;
+    background:#1d232c;border:1px solid #2a313c;border-radius:var(--radius);
+    padding:2px 3px 2px 5px;
+  }
+  .type-pill.active{border-color:var(--accent);}
+  .type-pill-name{
+    all:unset;cursor:pointer;flex:1;min-width:0;
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--sidebar-ink-dim);
+    padding:6px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .type-pill-name:hover{color:#e9ebee;}
+  .type-pill.active .type-pill-name{color:#f2f3f1;font-weight:600;}
+  .type-pill-star{all:unset;cursor:pointer;font-size:12px;color:#4d5561;padding:2px 3px;flex:none;line-height:1;}
+  .type-pill-star.is-default{color:var(--accent-warm);}
+  .type-pill-rename{
+    all:unset;cursor:pointer;font-size:11px;color:var(--sidebar-ink-dim);
+    padding:2px 3px;flex:none;line-height:1;
+  }
+  .type-pill-rename:hover{color:#e9ebee;}
+  .type-pill-del{
+    all:unset;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    color:#a23b3b;border:1px solid #4a3535;width:16px;height:16px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;flex:none;line-height:1;
+  }
+  .type-switch-add{
+    all:unset;cursor:pointer;text-align:center;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;
+    color:var(--accent-deep);border:1px dashed var(--accent);
+    padding:7px 8px;border-radius:var(--radius);
+  }
+
   .side-actions{display:flex;flex-direction:column;gap:8px;margin-top:28px;padding-top:20px;border-top:1px solid #232a33;}
   .btn{
     all:unset;cursor:pointer;text-align:center;
@@ -392,6 +433,12 @@
       <button class="lang-btn" data-lang="en">EN</button>
     </div>
 
+    <div class="type-switch-wrap" id="typeSwitchWrap">
+      <div class="type-switch-title">loại cv</div>
+      <div class="type-switch" id="typeSwitch"></div>
+      <button class="type-switch-add" id="addTypeBtn">+ thêm loại CV</button>
+    </div>
+
     <div class="side-actions">
       <button class="btn editing" id="editModeBtn">🔒 chế độ chỉnh sửa</button>
       <button class="btn" id="editToggle">✎ bật chỉnh sửa</button>
@@ -419,7 +466,7 @@
         <div style="color:#c98a3f;">Chuỗi này chứa nguyên token — giữ kín như mật khẩu, không đăng công khai.</div>
       </div>
     </div>
-    <div class="side-note">Bấm "bật chỉnh sửa" và nhập mật khẩu để sửa nội dung. Nội dung tự lưu vào trình duyệt này (localStorage riêng cho từng máy/trình duyệt). Sửa xong, bấm "☁ lưu lên GitHub" để commit thẳng data.json lên repo (cần cài đặt GitHub ở trên trước). Nút "💾 lưu data.json" vẫn dùng được để tải/ghi file về máy nếu muốn tự đẩy lên thủ công. Trang web sẽ đọc data.json mỗi khi tải lại. Khi in / tải PDF, các nút điều khiển sẽ tự ẩn.</div>
+    <div class="side-note">Mục "loại cv" ở trên chỉ hiện khi đã mở khoá — dùng để tạo thêm loại CV cho từng mảng (Dữ liệu, Helpdesk...), mỗi loại có riêng bản VI/EN. Bấm ☆ để đặt loại nào là mặc định hiển thị cho khách xem trang khi chưa mở khoá. Bấm "bật chỉnh sửa" và nhập mật khẩu để sửa nội dung. Nội dung tự lưu vào trình duyệt này (localStorage riêng cho từng máy/trình duyệt). Sửa xong, bấm "☁ lưu lên GitHub" để commit thẳng data.json lên repo (cần cài đặt GitHub ở trên trước). Nút "💾 lưu data.json" vẫn dùng được để tải/ghi file về máy nếu muốn tự đẩy lên thủ công. Trang web sẽ đọc data.json mỗi khi tải lại. Khi in / tải PDF, các nút điều khiển sẽ tự ẩn.</div>
   </aside>
 
   <main class="stage">
@@ -820,6 +867,14 @@
   const defaultData = {
     avatar:null,
     lang:'vi',
+    // "defaultType" = loại CV hiển thị cho khách xem trang khi CHƯA mở khoá
+    // chỉnh sửa. "activeType" = loại đang được xem/sửa trong phiên hiện tại
+    // (khi mở khoá có thể chuyển qua lại; khi khoá lại sẽ tự quay về defaultType).
+    defaultType:'data',
+    activeType:'data',
+    types:{
+      data:{
+    name:{vi:'Dữ liệu & Hệ thống', en:'Data & Systems'},
     vi: {
       fields: {
         "side.tag":"vnpt / an giang",
@@ -986,14 +1041,35 @@
         }
       ]
     }
+      } // hết data.vi/data.en của loại "data"
+    } // hết types
   };
 
-  // Trả về dữ liệu của ngôn ngữ đang chọn (data.vi hoặc data.en) — mọi hàm
-  // đọc/ghi nội dung nên đi qua L() thay vì đụng thẳng vào "data" để tự
-  // động đúng ngôn ngữ hiện tại.
-  function L(){ return data[data.lang] || data.vi; }
+  function slugify(str){
+    return (str||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]+/g,'-').replace(/(^-+|-+$)/g,'') || 'loai';
+  }
+  function uniqueTypeKey(base){
+    let key = base, n = 2;
+    while(data.types[key]) key = base + '-' + (n++);
+    return key;
+  }
+
+  // Loại CV đang được xem/sửa (fallback về loại mặc định nếu activeType
+  // trỏ tới 1 key không còn tồn tại — ví dụ vừa bị xoá).
+  function curType(){ return data.types[data.activeType] || data.types[data.defaultType]; }
+  function typeLabel(key){
+    const t = data.types[key];
+    if(!t) return key;
+    return (t.name && (t.name[data.lang] || t.name.vi)) || key;
+  }
+
+  // Trả về dữ liệu của ngôn ngữ đang chọn, TRONG loại CV đang xem (data.vi
+  // hoặc data.en của curType()) — mọi hàm đọc/ghi nội dung nên đi qua L()
+  // thay vì đụng thẳng vào "data" để tự động đúng loại CV + ngôn ngữ hiện tại.
+  function L(){ const t = curType(); return t[data.lang] || t.vi; }
   function otherLangKey(){ return data.lang === 'en' ? 'vi' : 'en'; }
-  function O(){ return data[otherLangKey()]; }
+  function O(){ return curType()[otherLangKey()]; }
 
   // Đánh dấu 1 mục vừa được tự tạo ở ngôn ngữ còn lại (khi thêm mới ở ngôn
   // ngữ đang xem) để người dùng biết cần dịch, thay vì để trống/im lặng —
@@ -1022,16 +1098,95 @@
   // sẽ thấy "mất nội dung" — nên bên thiếu sẽ được vá bằng bản sao (kèm nhãn
   // cần dịch) thay vì để trống.
   function reconcileLangs(){
-    ['certs','jobs','skills','hobbies','projects'].forEach(key=>{
-      const a = data.vi[key], b = data.en[key];
-      while(a.length < b.length) a.push(markUntranslated(key, b[a.length], 'vi'));
-      while(b.length < a.length) b.push(markUntranslated(key, a[b.length], 'en'));
+    Object.keys(data.types).forEach(tk=>{
+      const t = data.types[tk];
+      if(!t.name) t.name = {vi:tk, en:tk};
+      ['certs','jobs','skills','hobbies','projects'].forEach(key=>{
+        const a = t.vi[key], b = t.en[key];
+        while(a.length < b.length) a.push(markUntranslated(key, b[a.length], 'vi'));
+        while(b.length < a.length) b.push(markUntranslated(key, a[b.length], 'en'));
+      });
     });
   }
 
   let data = await loadData();
   reconcileLangs();
   saveData();
+
+  const BASE_TYPE = defaultData.types.data; // dùng làm khung vá dữ liệu thiếu
+
+  // Bọc 1 cặp {vi,en} kiểu cũ (trước khi có "nhiều loại CV") thành 1 loại
+  // CV duy nhất tên "data", để tương thích ngược với các bản lưu trước đó.
+  function wrapLegacyIntoTypes(obj){
+    return {
+      avatar: obj.avatar || null,
+      lang: 'vi',
+      defaultType: 'data',
+      activeType: 'data',
+      types: {
+        data: {
+          name: {vi:'CV mặc định', en:'Default CV'},
+          vi: obj.vi,
+          en: obj.en
+        }
+      }
+    };
+  }
+
+  // Chuẩn hoá bất kỳ định dạng dữ liệu nào (cũ hay mới) về đúng cấu trúc
+  // "nhiều loại CV" hiện tại: { avatar, lang, defaultType, activeType, types:{ key:{name,vi,en} } }
+  function normalizeData(parsed){
+    parsed = parsed || {};
+
+    // Đã có cấu trúc "nhiều loại CV" (bản mới) — chỉ cần vá chỗ thiếu.
+    if(parsed.types && Object.keys(parsed.types).length){
+      Object.keys(parsed.types).forEach(k=>{
+        const t = parsed.types[k];
+        if(!t.vi) t.vi = JSON.parse(JSON.stringify(BASE_TYPE.vi));
+        if(!t.en) t.en = JSON.parse(JSON.stringify(BASE_TYPE.en));
+        if(!t.name) t.name = {vi:k, en:k};
+      });
+      if(!parsed.defaultType || !parsed.types[parsed.defaultType]){
+        parsed.defaultType = Object.keys(parsed.types)[0];
+      }
+      // Khi tải lại trang luôn mở đúng loại CV đang đặt làm mặc định (khách
+      // xem trang không nên tự dưng thấy loại CV khác lần trước ai đó đã sửa).
+      parsed.activeType = parsed.defaultType;
+      parsed.lang = 'vi';
+      parsed.avatar = parsed.avatar || null;
+      return parsed;
+    }
+
+    // Chưa có "types" → dữ liệu kiểu cũ. Có thể đã có vi/en (bản đa ngôn
+    // ngữ trước đây) hoặc cũ hơn nữa (fields/jobs/... nằm ngay ở gốc).
+    let legacy = parsed;
+    if(!legacy.vi && !legacy.en){
+      const old = {
+        fields: legacy.fields || JSON.parse(JSON.stringify(BASE_TYPE.vi.fields)),
+        certs: legacy.certs,
+        jobs: legacy.jobs || JSON.parse(JSON.stringify(BASE_TYPE.vi.jobs)),
+        skills: legacy.skills || JSON.parse(JSON.stringify(BASE_TYPE.vi.skills)),
+        hobbies: legacy.hobbies || JSON.parse(JSON.stringify(BASE_TYPE.vi.hobbies)),
+        projects: legacy.projects || JSON.parse(JSON.stringify(BASE_TYPE.vi.projects))
+      };
+      // dữ liệu cũ hơn nữa (trước khi có mảng certs) lưu 2 chứng chỉ cố định trong fields
+      if(!old.certs){
+        const f = old.fields || {};
+        if(f["cv.cert1name"] || f["cv.cert2name"]){
+          old.certs = [];
+          if(f["cv.cert1name"]) old.certs.push({name:f["cv.cert1name"], yr:f["cv.cert1yr"]||""});
+          if(f["cv.cert2name"]) old.certs.push({name:f["cv.cert2name"], yr:f["cv.cert2yr"]||""});
+        } else {
+          old.certs = JSON.parse(JSON.stringify(BASE_TYPE.vi.certs));
+        }
+      }
+      legacy = { avatar: legacy.avatar || null, vi: old, en: JSON.parse(JSON.stringify(BASE_TYPE.en)) };
+    } else {
+      if(!legacy.vi) legacy.vi = JSON.parse(JSON.stringify(BASE_TYPE.vi));
+      if(!legacy.en) legacy.en = JSON.parse(JSON.stringify(BASE_TYPE.en));
+    }
+    return wrapLegacyIntoTypes(legacy);
+  }
 
   async function loadData(){
     // Ưu tiên đọc dữ liệu từ file data.json nằm cạnh file HTML này (cùng
@@ -1041,11 +1196,7 @@
       const res = await fetch(DATA_URL, {cache:'no-store'});
       if(res.ok){
         const parsed = await res.json();
-        if(!parsed.vi) parsed.vi = JSON.parse(JSON.stringify(defaultData.vi));
-        if(!parsed.en) parsed.en = JSON.parse(JSON.stringify(defaultData.en));
-        // Luôn mở mặc định bằng tiếng Việt, bất kể lần trước lưu là gì.
-        parsed.lang = 'vi';
-        return parsed;
+        return normalizeData(parsed);
       }
     }catch(e){}
     try{
@@ -1055,36 +1206,7 @@
         if(parsed.avatar && (parsed.avatar.indexOf('dicebear.com') !== -1 || parsed.avatar.indexOf('image/svg+xml') !== -1)){
           parsed.avatar = null;
         }
-        // Dữ liệu cũ (trước khi có tính năng đa ngôn ngữ) lưu fields/certs/
-        // jobs/skills/hobbies/projects ngay ở gốc, không nằm trong vi/en.
-        if(!parsed.vi && !parsed.en){
-          const old = {
-            fields: parsed.fields || JSON.parse(JSON.stringify(defaultData.vi.fields)),
-            certs: parsed.certs,
-            jobs: parsed.jobs || JSON.parse(JSON.stringify(defaultData.vi.jobs)),
-            skills: parsed.skills || JSON.parse(JSON.stringify(defaultData.vi.skills)),
-            hobbies: parsed.hobbies || JSON.parse(JSON.stringify(defaultData.vi.hobbies)),
-            projects: parsed.projects || JSON.parse(JSON.stringify(defaultData.vi.projects))
-          };
-          // dữ liệu cũ hơn nữa (trước khi có mảng certs) lưu 2 chứng chỉ cố định trong fields
-          if(!old.certs){
-            const f = old.fields || {};
-            if(f["cv.cert1name"] || f["cv.cert2name"]){
-              old.certs = [];
-              if(f["cv.cert1name"]) old.certs.push({name:f["cv.cert1name"], yr:f["cv.cert1yr"]||""});
-              if(f["cv.cert2name"]) old.certs.push({name:f["cv.cert2name"], yr:f["cv.cert2yr"]||""});
-            } else {
-              old.certs = JSON.parse(JSON.stringify(defaultData.vi.certs));
-            }
-          }
-          return { avatar: parsed.avatar || null, lang:'vi', vi: old, en: JSON.parse(JSON.stringify(defaultData.en)) };
-        }
-        // đã có cấu trúc đa ngôn ngữ nhưng thiếu 1 trong 2 bản (ví dụ vừa nâng cấp)
-        if(!parsed.vi) parsed.vi = JSON.parse(JSON.stringify(defaultData.vi));
-        if(!parsed.en) parsed.en = JSON.parse(JSON.stringify(defaultData.en));
-        // Luôn mở mặc định bằng tiếng Việt, bất kể lần trước lưu là gì.
-        parsed.lang = 'vi';
-        return parsed;
+        return normalizeData(parsed);
       }
     }catch(e){}
     return JSON.parse(JSON.stringify(defaultData));
@@ -1237,7 +1359,106 @@
     renderSkills();
     renderHobbies();
     renderProjects();
+    renderTypeSwitch();
   }
+
+  // ---------- nhiều loại CV (Dữ liệu, Helpdesk, ...) ----------
+  function renderTypeSwitch(){
+    const wrap = document.getElementById('typeSwitch');
+    if(!wrap) return;
+    const keys = Object.keys(data.types);
+    wrap.innerHTML = keys.map(key=>{
+      const isActive = key === data.activeType;
+      const isDefault = key === data.defaultType;
+      return `
+        <div class="type-pill${isActive ? ' active' : ''}">
+          <button class="type-pill-name" data-type-select="${key}">${typeLabel(key)}</button>
+          <button class="type-pill-rename" data-type-rename="${key}" title="đổi tên loại CV">✎</button>
+          <button class="type-pill-star${isDefault ? ' is-default' : ''}" data-type-default="${key}"
+            title="${isDefault ? 'đang là loại mặc định cho khách xem trang' : 'đặt làm loại mặc định cho khách xem trang'}">${isDefault ? '★' : '☆'}</button>
+          ${keys.length > 1 ? `<button class="type-pill-del" data-type-del="${key}" title="xoá loại CV">×</button>` : ''}
+        </div>`;
+    }).join('');
+
+    wrap.querySelectorAll('[data-type-select]').forEach(btn=>{
+      btn.onclick = ()=> switchType(btn.getAttribute('data-type-select'));
+    });
+    wrap.querySelectorAll('[data-type-rename]').forEach(btn=>{
+      btn.onclick = ()=> renameType(btn.getAttribute('data-type-rename'));
+    });
+    wrap.querySelectorAll('[data-type-default]').forEach(btn=>{
+      btn.onclick = ()=>{
+        data.defaultType = btn.getAttribute('data-type-default');
+        saveData();
+        renderTypeSwitch();
+      };
+    });
+    wrap.querySelectorAll('[data-type-del]').forEach(btn=>{
+      btn.onclick = ()=> deleteType(btn.getAttribute('data-type-del'));
+    });
+  }
+
+  function switchType(key){
+    if(!data.types[key] || key === data.activeType) return;
+    data.activeType = key;
+    saveData();
+    renderAll();
+  }
+
+  // Đổi tên hiển thị (VI + EN) của 1 loại CV — không đổi nội dung bên trong,
+  // chỉ đổi cái tên xuất hiện trên "viên thuốc" trong khối "loại cv".
+  function renameType(key){
+    const t = data.types[key];
+    if(!t) return;
+    const nameViInput = prompt('Đổi tên (tiếng Việt) cho loại CV này:', t.name.vi || key);
+    if(nameViInput === null) return; // huỷ
+    const nameVi = nameViInput.trim() || t.name.vi || key;
+    const nameEnInput = prompt('Đổi tên (tiếng Anh) cho loại CV này:', t.name.en || nameVi);
+    if(nameEnInput === null) return; // huỷ
+    const nameEn = nameEnInput.trim() || nameVi;
+    t.name = {vi:nameVi, en:nameEn};
+    saveData();
+    renderTypeSwitch();
+  }
+
+  function deleteType(key){
+    if(Object.keys(data.types).length <= 1){
+      alert('Phải còn ít nhất 1 loại CV.');
+      return;
+    }
+    if(!confirm(`Xoá loại CV "${typeLabel(key)}"? Nội dung VI + EN của loại này sẽ mất, không khôi phục được.`)) return;
+    delete data.types[key];
+    if(data.defaultType === key) data.defaultType = Object.keys(data.types)[0];
+    if(data.activeType === key) data.activeType = data.defaultType;
+    saveData();
+    renderAll();
+  }
+
+  function addType(){
+    const nameViInput = prompt('Tên loại CV mới (VD: Helpdesk, QA/Tester, Business Analyst...):', '');
+    if(nameViInput === null) return; // huỷ
+    const nameVi = nameViInput.trim() || 'Loại CV mới';
+    const nameEnInput = prompt('Tên hiển thị bằng tiếng Anh cho loại CV này (để trống nếu dùng chung tên trên):', '');
+    const nameEn = (nameEnInput || '').trim() || nameVi;
+    const key = uniqueTypeKey(slugify(nameVi));
+
+    // Nhân bản từ loại đang xem để có sẵn khung nội dung (fields/jobs/skills/
+    // certs/hobbies/projects) — người dùng chỉ cần sửa lại phần khác biệt
+    // cho mảng mới thay vì phải nhập lại từ đầu.
+    const base = curType();
+    data.types[key] = {
+      name: {vi:nameVi, en:nameEn},
+      vi: JSON.parse(JSON.stringify(base.vi)),
+      en: JSON.parse(JSON.stringify(base.en))
+    };
+    data.types[key].vi.fields['cv.role'] = nameVi;
+    data.types[key].en.fields['cv.role'] = nameEn;
+
+    data.activeType = key;
+    saveData();
+    renderAll();
+  }
+  document.getElementById('addTypeBtn').onclick = addType;
 
   document.getElementById('avatarInput').onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
@@ -1495,6 +1716,12 @@
       setEditing(false);
       const panel = document.getElementById('githubPanel');
       if(panel) panel.style.display = 'none';
+      // Khoá lại thì luôn quay về đúng loại CV mặc định cho khách xem trang,
+      // dù lúc đang sửa có chuyển sang xem loại CV khác.
+      if(data.activeType !== data.defaultType){
+        data.activeType = data.defaultType;
+        renderAll();
+      }
     }
   }
 
@@ -1560,7 +1787,7 @@
   };
 
   document.getElementById('resetBtn').onclick = ()=>{
-    if(confirm('Khôi phục toàn bộ nội dung gốc? Các chỉnh sửa hiện tại sẽ bị mất.')){
+    if(confirm('Khôi phục toàn bộ nội dung gốc? Mọi chỉnh sửa và các loại CV tự tạo thêm sẽ bị mất.')){
       data = JSON.parse(JSON.stringify(defaultData));
       saveData();
       document.querySelectorAll('.lang-btn').forEach(b=>{
