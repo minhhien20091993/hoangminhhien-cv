@@ -775,12 +775,12 @@
             "text": "Kiểm tra, đối soát, tổng hợp và kiểm soát dữ liệu; xử lý các vấn đề liên quan đến tính chính xác và nhất quán của dữ liệu."
           },
           {
-            "title": "Phân tích & Báo cáo",
-            "text": "Sử dụng Excel trong tổng hợp, xử lý và theo dõi dữ liệu; hỗ trợ cung cấp dữ liệu phục vụ báo cáo và hoạt động kinh doanh.  "
+            "title": "BI & Hệ thống báo cáo",
+            "text": "Xây dựng báo cáo và Dashboard BI từ dữ liệu nghiệp vụ; trực quan hóa và phân tích dữ liệu phục vụ theo dõi hoạt động kinh doanh.  "
           },
           {
-            "title": "Hệ thống & Hỗ trợ Người dùng",
-            "text": "Có kinh nghiệm vận hành hệ thống nội bộ, quản lý quyền truy cập, hỗ trợ người dùng và phối hợp xử lý các vấn đề liên quan đến hệ thống và dữ liệu."
+            "title": "Excel & Phân tích dữ liệu",
+            "text": "Sử dụng Excel nâng cao trong tổng hợp, kiểm tra, phân tích và theo dõi dữ liệu."
           }
         ],
         "hobbies": [
@@ -789,7 +789,8 @@
           "Microsoft Excel ",
           "Cisco Packet Tracer",
           "Windows ",
-          "Microsoft Office"
+          "Microsoft Office",
+          "Dashboard BI"
         ],
         "projects": [
           {
@@ -955,7 +956,8 @@
           "Microsoft Excel ",
           "Cisco Packet Tracer",
           "Windows ",
-          "Microsoft Office"
+          "Microsoft Office",
+          "New item"
         ],
         "projects": [
           {
