@@ -455,7 +455,7 @@
       <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--sidebar-ink-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Cách 1 — tự động bằng Gemini API</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
         <input type="password" id="geminiKeyInput" placeholder="Gemini API key" class="mono" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:11.5px;">
-        <input type="text" id="geminiModelInput" placeholder="Tên model (mặc định: gemini-2.5-flash)" class="mono" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:11.5px;">
+        <input type="text" id="geminiModelInput" placeholder="Tên model (mặc định: gemini-3.6-flash)" class="mono" style="background:#1d232c;border:1px solid #2a313c;color:#e9ebee;padding:7px 8px;border-radius:2px;font-size:11.5px;">
         <button class="btn" id="geminiCfgSave">Lưu key</button>
       </div>
       <div style="margin-bottom:10px;">Key chỉ lưu trong trình duyệt này (localStorage), gửi thẳng tới Google khi bấm dịch — không đi qua máy chủ nào khác. Nếu Google đổi tên model, sửa lại ô "tên model" ở trên theo model hiện hành trong Google AI Studio.</div>
@@ -1624,7 +1624,7 @@
 
   // ---------- dịch tự động 1 click bằng Gemini API (key của người dùng) ----------
   const GEMINI_CFG_KEY = 'hmh-cv-gemini-cfg';
-  const GEMINI_DEFAULT_MODEL = 'gemini-2.5-flash';
+  const GEMINI_DEFAULT_MODEL = 'gemini-3.6-flash';
 
   function loadGeminiConfig(){
     try{ return JSON.parse(localStorage.getItem(GEMINI_CFG_KEY)) || {}; }catch(e){ return {}; }
@@ -1966,6 +1966,10 @@
         data.activeType = data.defaultType;
         renderAll();
       }
+      // Bấm "thoát chế độ chỉnh sửa" (khoá lại) → tự lưu data.json lên
+      // GitHub luôn, đỡ phải bấm thêm nút "☁ lưu lên GitHub". Chạy ngầm
+      // (silent): nếu máy chưa cấu hình GitHub thì bỏ qua, không alert.
+      saveDataToGithub(true);
     }
   }
 
@@ -1996,15 +2000,7 @@
   };
 
   editToggle.onclick = ()=>{
-    const turningOff = editing; // đang sửa → sắp tắt sửa
     setEditing(!editing);
-    // Vừa bấm để KẾT THÚC sửa nội dung (không phải lúc bật lên) → tự lưu
-    // data.json lên GitHub luôn, đỡ phải bấm thêm nút "☁ lưu lên GitHub".
-    // Chạy ngầm (silent): nếu máy chưa cấu hình GitHub thì bỏ qua, không
-    // làm phiền bằng alert.
-    if(turningOff){
-      saveDataToGithub(true);
-    }
   };
 
   document.getElementById('printBtn').onclick = async ()=>{
