@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HCMC Metro Line 1 — Operations Demo</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">M1</div>
+        <div>
+          <div class="eyebrow">HCMC METRO • OPERATIONS DEMO</div>
+          <h1>Tuyến số 1 · Bến Thành — Suối Tiên</h1>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="live-pill">
+          <span class="live-dot"></span>
+          <span>Schedule-based live view</span>
+        </div>
+        <div class="clock-card">
+          <span id="currentDate">--/--/----</span>
+          <strong id="currentClock">--:--:--</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="map-wrap">
+        <div id="map"></div>
+
+        <div class="map-title-card glass">
+          <span class="section-kicker">NETWORK VIEW</span>
+          <strong>Metro Line 1</strong>
+          <span id="mapSubtitle">Đang nạp dữ liệu...</span>
+        </div>
+
+        <div class="legend glass">
+          <div class="legend-title">Chú giải</div>
+          <div class="legend-row">
+            <span class="legend-line"></span>
+            <span>Tuyến Metro 1</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-station"></span>
+            <span>Nhà ga</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-train bt"></span>
+            <span>Bến Thành → Suối Tiên</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-train st"></span>
+            <span>Suối Tiên → Bến Thành</span>
+          </div>
+        </div>
+
+        <div class="data-note glass">
+          <span class="info-icon">i</span>
+          <span>
+            Vị trí đoàn tàu được tái dựng từ lịch xuất bến và thời gian hành trình,
+            không phải GPS/ATS realtime.
+          </span>
+        </div>
+      </section>
+
+      <aside class="control-panel">
+        <section class="panel-section hero-status">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">SYSTEM STATUS</span>
+              <h2>Vận hành tuyến</h2>
+            </div>
+            <span class="status-badge">DEMO</span>
+          </div>
+
+          <div class="status-main">
+            <div>
+              <span class="metric-label">Đang trên tuyến</span>
+              <div class="big-number" id="activeTrainCount">0</div>
+              <span class="metric-unit">lượt tàu</span>
+            </div>
+            <div class="ring">
+              <div class="ring-inner">
+                <span id="serviceState">ON</span>
+                <small>service</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">BT → ST</span>
+            <strong id="btCount">0</strong>
+            <small>đang chạy</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">ST → BT</span>
+            <strong id="stCount">0</strong>
+            <small>đang chạy</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Nhà ga</span>
+            <strong id="stationCount">14</strong>
+            <small>toàn tuyến</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Hành trình</span>
+            <strong>29</strong>
+            <small>phút / chiều</small>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-head compact">
+            <div>
+              <span class="section-kicker">NEXT DEPARTURES</span>
+              <h3>Chuyến sắp khởi hành</h3>
+            </div>
+          </div>
+
+          <div class="departure-block">
+            <div class="direction-head">
+              <span class="direction-chip bt">BT → ST</span>
+              <span>Bến Thành</span>
+            </div>
+            <div class="departure-list" id="nextBT"></div>
+          </div>
+
+          <div class="departure-block">
+            <div class="direction-head">
+              <span class="direction-chip st">ST → BT</span>
+              <span>Suối Tiên</span>
+            </div>
+            <div class="departure-list" id="nextST"></div>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-head compact">
+            <div>
+              <span class="section-kicker">ACTIVE TRAINS</span>
+              <h3>Đang vận hành</h3>
+            </div>
+          </div>
+          <div class="train-list" id="activeTrainList">
+            <div class="empty-state">Chưa có chuyến đang chạy.</div>
+          </div>
+        </section>
+
+        <footer class="panel-footer">
+          <span id="status">Đang tải dữ liệu...</span>
+          <span>Metro HCM Demo • WebGIS Prototype</span>
+        </footer>
+      </aside>
+    </main>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
