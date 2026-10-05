@@ -60,6 +60,7 @@
         </div>
         <div class="actions">
           <button class="secondary" id="resetBtn">Khôi phục mẫu</button>
+          <button id="addToggleBtn">Thêm tài sản</button>
           <button id="exportBtn">Xuất CSV</button>
         </div>
       </div>
@@ -70,6 +71,34 @@
         <div class="card warn"><span>Cần bảo trì</span><strong id="maintenanceAssets">0</strong></div>
         <div class="card danger"><span>Hỏng / ngưng dùng</span><strong id="brokenAssets">0</strong></div>
       </section>
+
+      <div class="panel" id="addPanel" style="display:none;margin-bottom:16px;">
+        <div class="panel-head"><h3>Thêm tài sản mới</h3></div>
+        <form id="addAssetForm">
+          <div class="form-row">
+            <label>Mã tài sản<input id="newCode" placeholder="VD: TS-007" required></label>
+            <label>Tên thiết bị<input id="newName" placeholder="VD: Máy tính phòng khám 01" required></label>
+          </div>
+          <div class="form-row">
+            <label>Nhóm thiết bị<input id="newCategory" placeholder="CNTT, Mạng, Thiết bị ngoại vi..." required></label>
+            <label>Khoa/phòng<input id="newDepartment" placeholder="VD: Khoa Nội tổng hợp" required></label>
+          </div>
+          <div class="form-row">
+            <label>Người phụ trách<input id="newOwner" placeholder="VD: Tổ IT / Điều dưỡng trưởng" required></label>
+            <label>Ngày bảo trì kế tiếp<input id="newNextService" type="date"></label>
+          </div>
+          <div class="form-row">
+            <label>Tình trạng<select id="newStatus">
+              <option value="Đang sử dụng">Đang sử dụng</option>
+              <option value="Cần bảo trì">Cần bảo trì</option>
+              <option value="Đang sửa chữa">Đang sửa chữa</option>
+              <option value="Hỏng / ngưng dùng">Hỏng / ngưng dùng</option>
+            </select></label>
+            <label>Giá trị ước tính<input id="newValue" type="number" min="0" value="0"></label>
+          </div>
+          <button type="submit">Lưu tài sản mới</button>
+        </form>
+      </div>
 
       <section class="workspace">
         <div class="panel">
@@ -157,6 +186,33 @@
       }).join('')||'<div class="log"><span>Chưa có lịch sử.</span></div>';
     }
     document.getElementById('searchInput').addEventListener('input',render);
+    document.getElementById('addToggleBtn').addEventListener('click',()=>{
+      const panel=document.getElementById('addPanel');
+      panel.style.display=panel.style.display==='none'?'block':'none';
+    });
+    document.getElementById('addAssetForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      const code=document.getElementById('newCode').value.trim().toUpperCase();
+      if(state.assets.some(a=>a.code.toUpperCase()===code)){
+        alert('Mã tài sản đã tồn tại. Vui lòng nhập mã khác.');
+        return;
+      }
+      const asset={
+        code,
+        name:document.getElementById('newName').value.trim(),
+        category:document.getElementById('newCategory').value.trim(),
+        department:document.getElementById('newDepartment').value.trim(),
+        owner:document.getElementById('newOwner').value.trim(),
+        status:document.getElementById('newStatus').value,
+        nextService:document.getElementById('newNextService').value,
+        value:Number(document.getElementById('newValue').value||0)
+      };
+      state.assets.push(asset);
+      state.history.unshift({code,action:'Thêm tài sản mới',note:asset.department,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
+      e.target.reset();
+      document.getElementById('newValue').value=0;
+      saveState();render();
+    });
     document.getElementById('assetForm').addEventListener('submit',e=>{
       e.preventDefault();
       const code=document.getElementById('assetSelect').value;
