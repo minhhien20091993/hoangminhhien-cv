@@ -88,6 +88,10 @@
             <label>Ngày bảo trì kế tiếp<input id="newNextService" type="date"></label>
           </div>
           <div class="form-row">
+            <label>Ngày sử dụng<input id="newUseDate" type="date"></label>
+            <label>Thời gian bảo hành (tháng)<input id="newWarrantyMonths" type="number" min="0" value="12"></label>
+          </div>
+          <div class="form-row">
             <label>Tình trạng<select id="newStatus">
               <option value="Đang sử dụng">Đang sử dụng</option>
               <option value="Cần bảo trì">Cần bảo trì</option>
@@ -109,7 +113,7 @@
           <table>
             <thead>
               <tr>
-                <th>Mã tài sản</th><th>Thiết bị</th><th>Khoa/phòng</th><th>Người phụ trách</th><th>Bảo trì kế tiếp</th><th>Tình trạng</th>
+                <th>Mã tài sản</th><th>Thiết bị</th><th>Khoa/phòng</th><th>Người phụ trách</th><th>Bảo hành</th><th>Bảo trì kế tiếp</th><th>Tình trạng</th>
               </tr>
             </thead>
             <tbody id="assetRows"></tbody>
@@ -129,6 +133,10 @@
               </select></label>
               <label>Ngày bảo trì<input id="nextService" type="date"></label>
             </div>
+            <div class="form-row">
+              <label>Ngày sử dụng<input id="useDateInput" type="date"></label>
+              <label>Thời gian bảo hành (tháng)<input id="warrantyMonthsInput" type="number" min="0"></label>
+            </div>
             <label>Ghi chú<input id="noteInput" placeholder="VD: thay pin UPS, kiểm tra máy in khoa khám bệnh..."></label>
             <button type="submit">Cập nhật thông tin</button>
           </form>
@@ -143,12 +151,12 @@
     const STORAGE_KEY = 'hmh-hospital-asset-demo';
     const seed = {
       assets: [
-        {code:'TS-001', name:'Máy tính quầy tiếp nhận', category:'CNTT', department:'Khoa Khám bệnh', owner:'Tổ IT', status:'Đang sử dụng', nextService:'2026-11-15', value:12500000},
-        {code:'TS-002', name:'Máy in mã vạch vòng tay', category:'Thiết bị ngoại vi', department:'Cấp cứu', owner:'Điều dưỡng trưởng', status:'Cần bảo trì', nextService:'2026-10-12', value:6800000},
-        {code:'TS-003', name:'UPS 2KVA phòng server', category:'Nguồn dự phòng', department:'Phòng CNTT', owner:'Tổ IT', status:'Đang sử dụng', nextService:'2026-12-01', value:14500000},
-        {code:'TS-004', name:'Switch core 24 port', category:'Mạng', department:'Phòng CNTT', owner:'Tổ IT', status:'Đang sử dụng', nextService:'2026-11-01', value:22000000},
-        {code:'TS-005', name:'Máy tính trạm HIS', category:'CNTT', department:'Khoa Xét nghiệm', owner:'KTV xét nghiệm', status:'Đang sửa chữa', nextService:'2026-10-08', value:11800000},
-        {code:'TS-006', name:'Máy in laser hành chính', category:'Thiết bị văn phòng', department:'Phòng Hành chính', owner:'Văn thư', status:'Hỏng / ngưng dùng', nextService:'', value:3900000}
+        {code:'TS-001', name:'Máy tính quầy tiếp nhận', category:'CNTT', department:'Khoa Khám bệnh', owner:'Tổ IT', status:'Đang sử dụng', useDate:'2025-01-10', warrantyMonths:36, nextService:'2026-11-15', value:12500000},
+        {code:'TS-002', name:'Máy in mã vạch vòng tay', category:'Thiết bị ngoại vi', department:'Cấp cứu', owner:'Điều dưỡng trưởng', status:'Cần bảo trì', useDate:'2024-09-20', warrantyMonths:24, nextService:'2026-10-12', value:6800000},
+        {code:'TS-003', name:'UPS 2KVA phòng server', category:'Nguồn dự phòng', department:'Phòng CNTT', owner:'Tổ IT', status:'Đang sử dụng', useDate:'2025-06-05', warrantyMonths:24, nextService:'2026-12-01', value:14500000},
+        {code:'TS-004', name:'Switch core 24 port', category:'Mạng', department:'Phòng CNTT', owner:'Tổ IT', status:'Đang sử dụng', useDate:'2025-03-18', warrantyMonths:36, nextService:'2026-11-01', value:22000000},
+        {code:'TS-005', name:'Máy tính trạm HIS', category:'CNTT', department:'Khoa Xét nghiệm', owner:'KTV xét nghiệm', status:'Đang sửa chữa', useDate:'2024-12-01', warrantyMonths:36, nextService:'2026-10-08', value:11800000},
+        {code:'TS-006', name:'Máy in laser hành chính', category:'Thiết bị văn phòng', department:'Phòng Hành chính', owner:'Văn thư', status:'Hỏng / ngưng dùng', useDate:'2022-08-15', warrantyMonths:12, nextService:'', value:3900000}
       ],
       history: [
         {code:'TS-002', action:'Đánh dấu cần bảo trì', note:'In tem bị lệch, cần kiểm tra đầu in', time:'08:20'},
@@ -156,19 +164,33 @@
       ]
     };
     let state = loadState();
+    normalizeState();
     function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw)return JSON.parse(raw)}catch(e){}return JSON.parse(JSON.stringify(seed))}
+    function normalizeState(){state.assets.forEach(a=>{if(a.useDate===undefined)a.useDate='';if(a.warrantyMonths===undefined)a.warrantyMonths=12})}
     function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
     function money(n){return new Intl.NumberFormat('vi-VN').format(n)+' đ'}
+    function formatDate(value){if(!value)return 'Chưa có';const d=new Date(value+'T00:00:00');return Number.isNaN(d.getTime())?'Chưa có':d.toLocaleDateString('vi-VN')}
+    function warrantyEnd(asset){if(!asset.useDate||!Number(asset.warrantyMonths))return '';const d=new Date(asset.useDate+'T00:00:00');if(Number.isNaN(d.getTime()))return '';d.setMonth(d.getMonth()+Number(asset.warrantyMonths));return d.toISOString().slice(0,10)}
     function badgeClass(status){if(status==='Cần bảo trì')return 'warn';if(status==='Đang sửa chữa')return 'info';if(status==='Hỏng / ngưng dùng')return 'danger';return ''}
+    function syncSelectedAsset(){
+      const asset=state.assets.find(a=>a.code===document.getElementById('assetSelect').value);
+      if(!asset)return;
+      document.getElementById('assetStatus').value=asset.status;
+      document.getElementById('nextService').value=asset.nextService||'';
+      document.getElementById('useDateInput').value=asset.useDate||'';
+      document.getElementById('warrantyMonthsInput').value=asset.warrantyMonths||0;
+    }
     function render(){
       const q=document.getElementById('searchInput').value.trim().toLowerCase();
       const filtered=state.assets.filter(a=>[a.code,a.name,a.category,a.department,a.owner,a.status].join(' ').toLowerCase().includes(q));
       document.getElementById('assetRows').innerHTML=filtered.map(a=>`<tr>
         <td class="asset-code">${a.code}<div class="muted">${a.category}</div></td>
         <td><strong>${a.name}</strong></td><td>${a.department}</td><td>${a.owner}</td>
+        <td>${formatDate(a.useDate)}<div class="muted">${a.warrantyMonths||0} tháng · Hết BH: ${formatDate(warrantyEnd(a))}</div></td>
         <td>${a.nextService||'Chưa đặt lịch'}</td><td><span class="badge ${badgeClass(a.status)}">${a.status}</span></td>
       </tr>`).join('');
       document.getElementById('assetSelect').innerHTML=state.assets.map(a=>`<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+      syncSelectedAsset();
       const active=state.assets.filter(a=>a.status==='Đang sử dụng').length;
       const maintenance=state.assets.filter(a=>a.status==='Cần bảo trì'||a.status==='Đang sửa chữa').length;
       const broken=state.assets.filter(a=>a.status==='Hỏng / ngưng dùng').length;
@@ -186,6 +208,7 @@
       }).join('')||'<div class="log"><span>Chưa có lịch sử.</span></div>';
     }
     document.getElementById('searchInput').addEventListener('input',render);
+    document.getElementById('assetSelect').addEventListener('change',syncSelectedAsset);
     document.getElementById('addToggleBtn').addEventListener('click',()=>{
       const panel=document.getElementById('addPanel');
       panel.style.display=panel.style.display==='none'?'block':'none';
@@ -204,6 +227,8 @@
         department:document.getElementById('newDepartment').value.trim(),
         owner:document.getElementById('newOwner').value.trim(),
         status:document.getElementById('newStatus').value,
+        useDate:document.getElementById('newUseDate').value,
+        warrantyMonths:Number(document.getElementById('newWarrantyMonths').value||0),
         nextService:document.getElementById('newNextService').value,
         value:Number(document.getElementById('newValue').value||0)
       };
@@ -211,6 +236,7 @@
       state.history.unshift({code,action:'Thêm tài sản mới',note:asset.department,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
       e.target.reset();
       document.getElementById('newValue').value=0;
+      document.getElementById('newWarrantyMonths').value=12;
       saveState();render();
     });
     document.getElementById('assetForm').addEventListener('submit',e=>{
@@ -218,19 +244,23 @@
       const code=document.getElementById('assetSelect').value;
       const status=document.getElementById('assetStatus').value;
       const nextService=document.getElementById('nextService').value;
+      const useDate=document.getElementById('useDateInput').value;
+      const warrantyMonths=Number(document.getElementById('warrantyMonthsInput').value||0);
       const note=document.getElementById('noteInput').value.trim();
       const asset=state.assets.find(a=>a.code===code);
       if(!asset)return;
       asset.status=status;
       if(nextService)asset.nextService=nextService;
+      asset.useDate=useDate;
+      asset.warrantyMonths=warrantyMonths;
       state.history.unshift({code,action:'Cập nhật: '+status,note,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
       document.getElementById('noteInput').value='';
       saveState();render();
     });
-    document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('Khôi phục dữ liệu mẫu?')){state=JSON.parse(JSON.stringify(seed));saveState();render()}});
+    document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('Khôi phục dữ liệu mẫu?')){state=JSON.parse(JSON.stringify(seed));normalizeState();saveState();render()}});
     document.getElementById('exportBtn').addEventListener('click',()=>{
-      const rows=[['Ma tai san','Ten thiet bi','Nhom','Khoa phong','Nguoi phu trach','Tinh trang','Bao tri ke tiep','Gia tri']];
-      state.assets.forEach(a=>rows.push([a.code,a.name,a.category,a.department,a.owner,a.status,a.nextService,a.value]));
+      const rows=[['Ma tai san','Ten thiet bi','Nhom','Khoa phong','Nguoi phu trach','Tinh trang','Ngay su dung','Thoi gian bao hanh (thang)','Het bao hanh','Bao tri ke tiep','Gia tri']];
+      state.assets.forEach(a=>rows.push([a.code,a.name,a.category,a.department,a.owner,a.status,a.useDate,a.warrantyMonths,warrantyEnd(a),a.nextService,a.value]));
       const csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');
       const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
       const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='quan-ly-tai-san-benh-vien.csv';a.click();URL.revokeObjectURL(url);
