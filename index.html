@@ -68,15 +68,19 @@
   }
 
   nav.tabs{display:flex;flex-direction:column;gap:2px;margin-bottom:auto;}
-  nav.tabs button{
+  nav.tabs button,
+  nav.tabs a{
     all:unset;cursor:pointer;
     font-family:'IBM Plex Mono',monospace;
     font-size:12.5px;color:var(--sidebar-ink-dim);
     padding:10px 10px;border-radius:var(--radius);
     display:flex;align-items:center;gap:9px;
+    text-decoration:none;
   }
-  nav.tabs button .idx{color:#4d5561;}
-  nav.tabs button:hover{color:#e9ebee;background:#1d232c;}
+  nav.tabs button .idx,
+  nav.tabs a .idx{color:#4d5561;}
+  nav.tabs button:hover,
+  nav.tabs a:hover{color:#e9ebee;background:#1d232c;}
   nav.tabs button.active{color:#f2f3f1;background:#1d232c;border-left:2px solid var(--accent);padding-left:8px;}
 
   .lang-switch{display:flex;gap:4px;margin-top:14px;padding:3px;background:#1d232c;border-radius:var(--radius);border:1px solid #2a313c;}
@@ -426,6 +430,7 @@
     <nav class="tabs">
       <button class="active" data-view="cv"><span class="idx">01</span> cv.view</button>
       <button data-view="pf"><span class="idx">02</span> portfolio.view</button>
+      <a href="metro-hcm/"><span class="idx">03</span> metro-hcm</a>
     </nav>
 
     <div class="lang-switch" id="langSwitch">
