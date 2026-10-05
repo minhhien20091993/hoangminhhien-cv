@@ -5,33 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý tài sản bệnh viện</title>
   <style>
-    :root{--bg:#0f172a;--panel:#fff;--soft:#f8fafc;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--accent:#0f766e;--accent-2:#0d9488;--warn:#d97706;--danger:#dc2626;--ok:#059669;--radius:8px}
-    *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e5e7eb;color:var(--ink)}
-    .app{min-height:100vh;display:grid;grid-template-columns:270px 1fr}aside{background:var(--bg);color:#cbd5e1;padding:24px 20px}
+    :root{--bg:#0f172a;--panel:#fff;--soft:#f8fafc;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--accent:#0f766e;--accent-2:#0d9488;--warn:#d97706;--danger:#dc2626;--ok:#059669;--radius:8px;--shadow:0 12px 30px rgba(15,23,42,.08)}
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f7;color:var(--ink)}
+    .app{min-height:100vh;display:grid;grid-template-columns:280px 1fr}aside{background:linear-gradient(180deg,#0f172a 0%,#111827 100%);color:#cbd5e1;padding:26px 20px}
     .brand h1{margin:0;color:#fff;font-size:22px;line-height:1.25}.brand p{margin:8px 0 0;color:#94a3b8;font-size:13px;line-height:1.55}
-    .back{display:inline-flex;margin-top:18px;color:#99f6e4;text-decoration:none;font-size:13px}.side-section{margin-top:30px}
+    .back{display:inline-flex;margin-top:18px;color:#99f6e4;text-decoration:none;font-size:13px;font-weight:700}.side-section{margin-top:30px}
     .side-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:10px}
-    .quick-stat{border:1px solid #243244;border-radius:var(--radius);padding:12px;margin-bottom:10px;background:#162032}
+    .quick-stat{border:1px solid #243244;border-radius:var(--radius);padding:13px;margin-bottom:10px;background:rgba(22,32,50,.92)}
     .quick-stat span{display:block;font-size:12px;color:#94a3b8}.quick-stat strong{display:block;margin-top:4px;font-size:20px;color:#fff}
-    main{padding:24px;overflow:auto}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    main{padding:26px;overflow:auto}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
     .title h2{margin:0;font-size:26px}.title p{margin:6px 0 0;color:var(--muted);font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap}
-    button{border:0;border-radius:var(--radius);padding:10px 14px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;font-size:14px}
-    button:hover{background:var(--accent-2)}button.secondary{background:#e2e8f0;color:#0f172a}button.secondary:hover{background:#cbd5e1}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.eyebrow:before{content:'';width:8px;height:8px;border-radius:999px;background:var(--accent)}
+    button{border:0;border-radius:var(--radius);padding:10px 14px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;font-size:14px;box-shadow:0 6px 14px rgba(15,118,110,.18)}
+    button:hover{background:var(--accent-2)}button.secondary{background:#fff;color:#0f172a;border:1px solid var(--line);box-shadow:none}button.secondary:hover{background:#f1f5f9}
     .cards{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:14px;margin-bottom:18px}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}.card span{display:block;color:var(--muted);font-size:13px}.card strong{display:block;margin-top:8px;font-size:26px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}.card span{display:block;color:var(--muted);font-size:13px}.card strong{display:block;margin-top:8px;font-size:28px}
     .card.ok strong{color:var(--ok)}.card.warn strong{color:var(--warn)}.card.danger strong{color:var(--danger)}
-    .workspace{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+    .workspace{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
     .panel-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--soft)}
-    .panel-head h3{margin:0;font-size:16px}.search{width:280px;max-width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px;font-size:14px}
-    table{width:100%;border-collapse:collapse}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
-    th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:#f8fafc}tr:last-child td{border-bottom:0}
-    .asset-code{font-family:Consolas,monospace;color:#334155}.muted{color:var(--muted);font-size:12px;margin-top:3px}
+    .panel-head h3{margin:0;font-size:16px}.panel-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.search{width:300px;max-width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;font-size:14px;background:#fff}
+    .table-wrap{overflow:auto}table{width:100%;min-width:980px;border-collapse:collapse}th,td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
+    th{position:sticky;top:0;z-index:1;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#f8fafc}tr:last-child td{border-bottom:0}tbody tr:hover{background:#f8fafc}
+    .asset-code{font-family:Consolas,monospace;color:#334155;font-weight:700}.asset-title{font-weight:800;color:#0f172a}.muted{color:var(--muted);font-size:12px;margin-top:3px;line-height:1.45}
     .badge{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;background:#dcfce7;color:#166534;white-space:nowrap}
     .badge.warn{background:#fef3c7;color:#92400e}.badge.danger{background:#fee2e2;color:#991b1b}.badge.info{background:#dbeafe;color:#1d4ed8}
-    .row-actions{display:flex;gap:6px;flex-wrap:wrap}.row-actions button{padding:7px 10px;font-size:12px}.row-actions .delete{background:#fee2e2;color:#991b1b}.row-actions .delete:hover{background:#fecaca}
+    .row-actions{display:flex;gap:6px;flex-wrap:wrap}.row-actions button{padding:7px 10px;font-size:12px;box-shadow:none}.row-actions .delete{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}.row-actions .delete:hover{background:#ffe4e6}.row-actions .edit{background:#ecfeff;color:#0f766e;border:1px solid #99f6e4}
     form{padding:16px;display:grid;gap:12px}label{display:grid;gap:6px;font-size:13px;color:#334155;font-weight:700}
-    input,select{width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:10px 11px;font-size:14px;background:#fff}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.history{padding:0 16px 16px}
+    input,select{width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:10px 11px;font-size:14px;background:#fff}input:focus,select:focus{outline:2px solid rgba(13,148,136,.18);border-color:var(--accent-2)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.history{padding:0 16px 16px}.empty-state{padding:24px 16px;color:var(--muted);font-size:14px;text-align:center}
     .log{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.log:last-child{border-bottom:0}.log span{color:var(--muted)}
     @media(max-width:1050px){.app{grid-template-columns:1fr}.workspace{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(160px,1fr))}}
     @media(max-width:620px){main{padding:14px}.toolbar{align-items:flex-start;flex-direction:column}.cards{grid-template-columns:1fr}th:nth-child(3),td:nth-child(3){display:none}}
@@ -56,6 +57,7 @@
     <main>
       <div class="toolbar">
         <div class="title">
+          <div class="eyebrow">Asset Management System</div>
           <h2>Quản lý tài sản bệnh viện</h2>
           <p>Theo dõi thiết bị theo khoa/phòng, tình trạng sử dụng, người phụ trách và lịch bảo trì.</p>
         </div>
@@ -108,21 +110,23 @@
       <section class="workspace">
         <div class="panel">
           <div class="panel-head">
-            <h3>Danh sách tài sản</h3>
+            <div><h3>Danh sách tài sản</h3><p>Quản lý vòng đời thiết bị, bảo hành và lịch bảo trì</p></div>
             <input class="search" id="searchInput" placeholder="Tìm mã, thiết bị, khoa/phòng...">
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Mã tài sản</th><th>Thiết bị</th><th>Khoa/phòng</th><th>Người phụ trách</th><th>Bảo hành</th><th>Bảo trì kế tiếp</th><th>Tình trạng</th><th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="assetRows"></tbody>
-          </table>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã tài sản</th><th>Thiết bị</th><th>Khoa/phòng</th><th>Người phụ trách</th><th>Bảo hành</th><th>Bảo trì kế tiếp</th><th>Tình trạng</th><th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="assetRows"></tbody>
+            </table>
+          </div>
         </div>
 
         <div class="panel" id="updatePanel" style="display:none;">
-          <div class="panel-head"><h3>Cập nhật tài sản</h3></div>
+          <div class="panel-head"><div><h3>Cập nhật tài sản</h3><p id="selectedAssetText">Chọn tài sản từ danh sách để cập nhật</p></div></div>
           <form id="assetForm">
             <label>Tài sản<select id="assetSelect"></select></label>
             <div class="form-row">
@@ -176,6 +180,7 @@
     function syncSelectedAsset(){
       const asset=state.assets.find(a=>a.code===document.getElementById('assetSelect').value);
       if(!asset)return;
+      document.getElementById('selectedAssetText').textContent=asset.code+' - '+asset.name;
       document.getElementById('assetStatus').value=asset.status;
       document.getElementById('nextService').value=asset.nextService||'';
       document.getElementById('useDateInput').value=asset.useDate||'';
@@ -197,13 +202,13 @@
     function render(){
       const q=document.getElementById('searchInput').value.trim().toLowerCase();
       const filtered=state.assets.filter(a=>[a.code,a.name,a.category,a.department,a.owner,a.status].join(' ').toLowerCase().includes(q));
-      document.getElementById('assetRows').innerHTML=filtered.map(a=>`<tr>
+      document.getElementById('assetRows').innerHTML=filtered.length?filtered.map(a=>`<tr>
         <td class="asset-code">${a.code}<div class="muted">${a.category}</div></td>
-        <td><strong>${a.name}</strong></td><td>${a.department}</td><td>${a.owner}</td>
+        <td><div class="asset-title">${a.name}</div><div class="muted">Giá trị: ${money(a.value)}</div></td><td>${a.department}</td><td>${a.owner}</td>
         <td>${formatDate(a.useDate)}<div class="muted">${a.warrantyMonths||0} tháng · Hết BH: ${formatDate(warrantyEnd(a))}</div></td>
         <td>${a.nextService||'Chưa đặt lịch'}</td><td><span class="badge ${badgeClass(a.status)}">${a.status}</span></td>
-        <td><div class="row-actions"><button type="button" data-action="edit" data-code="${a.code}">Cập nhật</button><button type="button" class="delete" data-action="delete" data-code="${a.code}">Xóa</button></div></td>
-      </tr>`).join('');
+        <td><div class="row-actions"><button type="button" class="edit" data-action="edit" data-code="${a.code}">Cập nhật</button><button type="button" class="delete" data-action="delete" data-code="${a.code}">Xóa</button></div></td>
+      </tr>`).join(''):'<tr><td colspan="8"><div class="empty-state">Không tìm thấy tài sản phù hợp.</div></td></tr>';
       document.getElementById('assetSelect').innerHTML=state.assets.map(a=>`<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
       if(state.assets.length)syncSelectedAsset();
       const active=state.assets.filter(a=>a.status==='Đang sử dụng').length;
