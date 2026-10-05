@@ -34,11 +34,13 @@
     input,select{width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:10px 11px;font-size:14px;background:#fff}input:focus,select:focus{outline:2px solid rgba(13,148,136,.18);border-color:var(--accent-2)}
     .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.history{padding:0 16px 16px}.empty-state{padding:24px 16px;color:var(--muted);font-size:14px;text-align:center}
     .log{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.log:last-child{border-bottom:0}.log span{color:var(--muted)}
+    .admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}.admin-box{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}.admin-box h4{margin:0;padding:12px 14px;background:#f8fafc;border-bottom:1px solid var(--line);font-size:14px}.admin-list{padding:0 14px 14px}.admin-item{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.admin-item:last-child{border-bottom:0}.admin-item button{padding:6px 9px;font-size:12px;box-shadow:none;background:#fff1f2;color:#be123c;border:1px solid #fecdd3}.admin-note{padding:0 16px 16px;color:var(--muted);font-size:12px;line-height:1.45}
     .modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.48)}
     .modal-card{width:min(720px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:var(--radius);box-shadow:0 24px 70px rgba(15,23,42,.25);border:1px solid var(--line)}
     .modal-card.narrow{width:min(440px,100%)}.modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 16px 16px}.danger-btn{background:var(--danger)}.danger-btn:hover{background:#b91c1c}
     @media(max-width:1050px){.app{grid-template-columns:1fr}.workspace{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(160px,1fr))}}
     @media(max-width:900px){th:nth-child(4),td:nth-child(4),th:nth-child(6),td:nth-child(6){display:none}}
+    @media(max-width:760px){.admin-grid{grid-template-columns:1fr}}
     @media(max-width:620px){main{padding:14px}.toolbar{align-items:flex-start;flex-direction:column}.cards{grid-template-columns:1fr}th:nth-child(3),td:nth-child(3),th:nth-child(5),td:nth-child(5){display:none}.form-row{grid-template-columns:1fr}.row-actions{flex-direction:column}}
   </style>
 </head>
@@ -67,6 +69,7 @@
         </div>
         <div class="actions">
           <button class="secondary" id="resetBtn">Khôi phục mẫu</button>
+          <button class="secondary" id="adminBtn">Admin</button>
           <button id="addToggleBtn">Thêm tài sản</button>
           <button id="exportBtn">Xuất CSV</button>
         </div>
@@ -178,6 +181,44 @@
     </div>
   </div>
 
+  <div class="modal" id="adminPanel">
+    <div class="modal-card">
+      <div class="panel-head"><div><h3>Admin hệ thống</h3><p>Quản lý phòng ban và tài khoản người dùng demo</p></div></div>
+      <div class="admin-grid">
+        <div class="admin-box">
+          <h4>Phòng ban</h4>
+          <form id="departmentForm">
+            <label>Tên phòng ban<input id="departmentName" placeholder="VD: Khoa Nội tổng hợp" required></label>
+            <button type="submit">Thêm phòng ban</button>
+          </form>
+          <div class="admin-list" id="departmentList"></div>
+        </div>
+        <div class="admin-box">
+          <h4>Người dùng</h4>
+          <form id="userForm">
+            <div class="form-row">
+              <label>Họ tên<input id="userFullName" placeholder="VD: Nguyễn Văn A" required></label>
+              <label>Vai trò<select id="userRole">
+                <option value="Admin">Admin</option>
+                <option value="IT">IT</option>
+                <option value="Khoa/phòng">Khoa/phòng</option>
+                <option value="Ban giám đốc">Ban giám đốc</option>
+              </select></label>
+            </div>
+            <div class="form-row">
+              <label>User<input id="userName" placeholder="VD: nva" required></label>
+              <label>Pass<input id="userPass" type="password" placeholder="Nhập mật khẩu" required></label>
+            </div>
+            <button type="submit">Thêm người dùng</button>
+          </form>
+          <div class="admin-list" id="userList"></div>
+        </div>
+      </div>
+      <div class="admin-note">Lưu ý: user/pass trong demo này lưu trên trình duyệt bằng localStorage, chỉ dùng để mô phỏng chức năng quản trị.</div>
+      <div class="modal-actions"><button type="button" class="secondary" id="closeAdminBtn">Đóng</button></div>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = 'hmh-hospital-asset-demo';
     const seed = {
@@ -192,18 +233,28 @@
       history: [
         {code:'TS-002', action:'Đánh dấu cần bảo trì', note:'In tem bị lệch, cần kiểm tra đầu in', time:'08:20'},
         {code:'TS-005', action:'Chuyển sửa chữa', note:'Máy không khởi động ổn định', time:'07:50'}
+      ],
+      departments: ['Khoa Khám bệnh','Cấp cứu','Phòng CNTT','Khoa Xét nghiệm','Phòng Hành chính'],
+      users: [
+        {fullName:'Quản trị hệ thống', role:'Admin', username:'admin', password:'admin123'},
+        {fullName:'Tổ IT bệnh viện', role:'IT', username:'it.support', password:'it123'}
       ]
     };
     let state = loadState();
     let pendingDeleteCode = '';
     normalizeState();
     function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw)return JSON.parse(raw)}catch(e){}return JSON.parse(JSON.stringify(seed))}
-    function normalizeState(){state.assets.forEach(a=>{if(a.useDate===undefined)a.useDate='';if(a.warrantyMonths===undefined)a.warrantyMonths=12})}
+    function normalizeState(){state.assets.forEach(a=>{if(a.useDate===undefined)a.useDate='';if(a.warrantyMonths===undefined)a.warrantyMonths=12});if(!Array.isArray(state.departments))state.departments=[...seed.departments];if(!Array.isArray(state.users))state.users=[...seed.users]}
     function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
     function money(n){return new Intl.NumberFormat('vi-VN').format(n)+' đ'}
     function formatDate(value){if(!value)return 'Chưa có';const d=new Date(value+'T00:00:00');return Number.isNaN(d.getTime())?'Chưa có':d.toLocaleDateString('vi-VN')}
     function warrantyEnd(asset){if(!asset.useDate||!Number(asset.warrantyMonths))return '';const d=new Date(asset.useDate+'T00:00:00');if(Number.isNaN(d.getTime()))return '';d.setMonth(d.getMonth()+Number(asset.warrantyMonths));return d.toISOString().slice(0,10)}
     function badgeClass(status){if(status==='Cần bảo trì')return 'warn';if(status==='Đang sửa chữa')return 'info';if(status==='Hỏng / ngưng dùng')return 'danger';return ''}
+    function maskPass(value){return value?'•'.repeat(Math.min(String(value).length,8)):'Chưa có'}
+    function renderAdmin(){
+      document.getElementById('departmentList').innerHTML=state.departments.length?state.departments.map((name,index)=>`<div class="admin-item"><div><strong>${name}</strong><div class="muted">Phòng ban sử dụng trong quản lý tài sản</div></div><button type="button" data-admin="department" data-index="${index}">Xóa</button></div>`).join(''):'<div class="empty-state">Chưa có phòng ban.</div>';
+      document.getElementById('userList').innerHTML=state.users.length?state.users.map((user,index)=>`<div class="admin-item"><div><strong>${user.fullName}</strong><div class="muted">${user.role} · User: ${user.username} · Pass: ${maskPass(user.password)}</div></div><button type="button" data-admin="user" data-index="${index}">Xóa</button></div>`).join(''):'<div class="empty-state">Chưa có người dùng.</div>';
+    }
     function syncSelectedAsset(){
       const asset=state.assets.find(a=>a.code===document.getElementById('assetSelect').value);
       if(!asset)return;
@@ -262,11 +313,13 @@
         const asset=state.assets.find(a=>a.code===log.code);
         return `<div class="log"><div><strong>${log.action}</strong><br><span>${asset?asset.name:log.code} · ${log.note||'Không có ghi chú'}</span></div><span>${log.time}</span></div>`;
       }).join('')||'<div class="log"><span>Chưa có lịch sử.</span></div>';
+      renderAdmin();
     }
     document.getElementById('searchInput').addEventListener('input',render);
     document.getElementById('assetSelect').addEventListener('change',syncSelectedAsset);
     document.getElementById('closeAddBtn').addEventListener('click',()=>document.getElementById('addPanel').style.display='none');
     document.getElementById('closeUpdateBtn').addEventListener('click',()=>document.getElementById('updatePanel').style.display='none');
+    document.getElementById('closeAdminBtn').addEventListener('click',()=>document.getElementById('adminPanel').style.display='none');
     document.getElementById('cancelDeleteBtn').addEventListener('click',()=>document.getElementById('deletePanel').style.display='none');
     document.getElementById('confirmDeleteBtn').addEventListener('click',confirmDeleteAsset);
     document.querySelectorAll('.modal').forEach(modal=>modal.addEventListener('click',e=>{if(e.target===modal)modal.style.display='none'}));
@@ -279,6 +332,44 @@
     document.getElementById('addToggleBtn').addEventListener('click',()=>{
       document.getElementById('addPanel').style.display='flex';
       document.getElementById('newCode').focus();
+    });
+    document.getElementById('adminBtn').addEventListener('click',()=>{
+      renderAdmin();
+      document.getElementById('adminPanel').style.display='flex';
+    });
+    document.getElementById('departmentForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      const name=document.getElementById('departmentName').value.trim();
+      if(!name)return;
+      if(state.departments.some(d=>d.toLowerCase()===name.toLowerCase())){alert('Phòng ban đã tồn tại.');return}
+      state.departments.push(name);
+      document.getElementById('departmentName').value='';
+      saveState();renderAdmin();
+    });
+    document.getElementById('userForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      const user={
+        fullName:document.getElementById('userFullName').value.trim(),
+        role:document.getElementById('userRole').value,
+        username:document.getElementById('userName').value.trim(),
+        password:document.getElementById('userPass').value
+      };
+      if(state.users.some(u=>u.username.toLowerCase()===user.username.toLowerCase())){alert('User đã tồn tại.');return}
+      state.users.push(user);
+      e.target.reset();
+      saveState();renderAdmin();
+    });
+    document.getElementById('departmentList').addEventListener('click',e=>{
+      const btn=e.target.closest('button[data-admin="department"]');
+      if(!btn)return;
+      state.departments.splice(Number(btn.dataset.index),1);
+      saveState();renderAdmin();
+    });
+    document.getElementById('userList').addEventListener('click',e=>{
+      const btn=e.target.closest('button[data-admin="user"]');
+      if(!btn)return;
+      state.users.splice(Number(btn.dataset.index),1);
+      saveState();renderAdmin();
     });
     document.getElementById('addAssetForm').addEventListener('submit',e=>{
       e.preventDefault();
