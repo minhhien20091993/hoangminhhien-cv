@@ -21,10 +21,10 @@
     .cards{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:14px;margin-bottom:18px}
     .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}.card span{display:block;color:var(--muted);font-size:13px}.card strong{display:block;margin-top:8px;font-size:28px}
     .card.ok strong{color:var(--ok)}.card.warn strong{color:var(--warn)}.card.danger strong{color:var(--danger)}
-    .workspace{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+    .workspace{display:grid;grid-template-columns:1fr;gap:16px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
     .panel-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--soft)}
     .panel-head h3{margin:0;font-size:16px}.panel-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.search{width:300px;max-width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;font-size:14px;background:#fff}
-    .table-wrap{overflow:auto}table{width:100%;min-width:980px;border-collapse:collapse}th,td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
+    .table-wrap{overflow:visible}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top;overflow-wrap:anywhere}
     th{position:sticky;top:0;z-index:1;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#f8fafc}tr:last-child td{border-bottom:0}tbody tr:hover{background:#f8fafc}
     .asset-code{font-family:Consolas,monospace;color:#334155;font-weight:700}.asset-title{font-weight:800;color:#0f172a}.muted{color:var(--muted);font-size:12px;margin-top:3px;line-height:1.45}
     .badge{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;background:#dcfce7;color:#166534;white-space:nowrap}
@@ -34,8 +34,12 @@
     input,select{width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:10px 11px;font-size:14px;background:#fff}input:focus,select:focus{outline:2px solid rgba(13,148,136,.18);border-color:var(--accent-2)}
     .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.history{padding:0 16px 16px}.empty-state{padding:24px 16px;color:var(--muted);font-size:14px;text-align:center}
     .log{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.log:last-child{border-bottom:0}.log span{color:var(--muted)}
+    .modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.48)}
+    .modal-card{width:min(720px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:var(--radius);box-shadow:0 24px 70px rgba(15,23,42,.25);border:1px solid var(--line)}
+    .modal-card.narrow{width:min(440px,100%)}.modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 16px 16px}.danger-btn{background:var(--danger)}.danger-btn:hover{background:#b91c1c}
     @media(max-width:1050px){.app{grid-template-columns:1fr}.workspace{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(160px,1fr))}}
-    @media(max-width:620px){main{padding:14px}.toolbar{align-items:flex-start;flex-direction:column}.cards{grid-template-columns:1fr}th:nth-child(3),td:nth-child(3){display:none}}
+    @media(max-width:900px){th:nth-child(4),td:nth-child(4),th:nth-child(6),td:nth-child(6){display:none}}
+    @media(max-width:620px){main{padding:14px}.toolbar{align-items:flex-start;flex-direction:column}.cards{grid-template-columns:1fr}th:nth-child(3),td:nth-child(3),th:nth-child(5),td:nth-child(5){display:none}.form-row{grid-template-columns:1fr}.row-actions{flex-direction:column}}
   </style>
 </head>
 <body>
@@ -125,31 +129,48 @@
           </div>
         </div>
 
-        <div class="panel" id="updatePanel" style="display:none;">
-          <div class="panel-head"><div><h3>Cập nhật tài sản</h3><p id="selectedAssetText">Chọn tài sản từ danh sách để cập nhật</p></div></div>
-          <form id="assetForm">
-            <label>Tài sản<select id="assetSelect"></select></label>
-            <div class="form-row">
-              <label>Tình trạng<select id="assetStatus">
-                <option value="Đang sử dụng">Đang sử dụng</option>
-                <option value="Cần bảo trì">Cần bảo trì</option>
-                <option value="Đang sửa chữa">Đang sửa chữa</option>
-                <option value="Hỏng / ngưng dùng">Hỏng / ngưng dùng</option>
-              </select></label>
-              <label>Ngày bảo trì<input id="nextService" type="date"></label>
-            </div>
-            <div class="form-row">
-              <label>Ngày sử dụng<input id="useDateInput" type="date"></label>
-              <label>Thời gian bảo hành (tháng)<input id="warrantyMonthsInput" type="number" min="0"></label>
-            </div>
-            <label>Ghi chú<input id="noteInput" placeholder="VD: thay pin UPS, kiểm tra máy in khoa khám bệnh..."></label>
-            <button type="submit">Cập nhật thông tin</button>
-          </form>
-          <div class="panel-head"><h3>Lịch sử gần đây</h3></div>
-          <div class="history" id="historyList"></div>
-        </div>
       </section>
     </main>
+  </div>
+
+  <div class="modal" id="updatePanel">
+    <div class="modal-card">
+      <div class="panel-head"><div><h3>Cập nhật tài sản</h3><p id="selectedAssetText">Chọn tài sản từ danh sách để cập nhật</p></div></div>
+      <form id="assetForm">
+        <label>Tài sản<select id="assetSelect"></select></label>
+        <div class="form-row">
+          <label>Tình trạng<select id="assetStatus">
+            <option value="Đang sử dụng">Đang sử dụng</option>
+            <option value="Cần bảo trì">Cần bảo trì</option>
+            <option value="Đang sửa chữa">Đang sửa chữa</option>
+            <option value="Hỏng / ngưng dùng">Hỏng / ngưng dùng</option>
+          </select></label>
+          <label>Ngày bảo trì<input id="nextService" type="date"></label>
+        </div>
+        <div class="form-row">
+          <label>Ngày sử dụng<input id="useDateInput" type="date"></label>
+          <label>Thời gian bảo hành (tháng)<input id="warrantyMonthsInput" type="number" min="0"></label>
+        </div>
+        <label>Ghi chú<input id="noteInput" placeholder="VD: thay pin UPS, kiểm tra máy in khoa khám bệnh..."></label>
+        <div class="modal-actions">
+          <button type="button" class="secondary" id="closeUpdateBtn">Đóng</button>
+          <button type="submit">Lưu cập nhật</button>
+        </div>
+      </form>
+      <div class="panel-head"><h3>Lịch sử gần đây</h3></div>
+      <div class="history" id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="deletePanel">
+    <div class="modal-card narrow">
+      <div class="panel-head"><div><h3>Xóa tài sản</h3><p id="deleteAssetText">Xác nhận tài sản cần xóa</p></div></div>
+      <div class="empty-state">Thao tác này sẽ xóa tài sản khỏi danh sách hiện tại.</div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="cancelDeleteBtn">Hủy</button>
+        <button type="button" class="danger-btn" id="confirmDeleteBtn">Xóa tài sản</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -169,6 +190,7 @@
       ]
     };
     let state = loadState();
+    let pendingDeleteCode = '';
     normalizeState();
     function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw)return JSON.parse(raw)}catch(e){}return JSON.parse(JSON.stringify(seed))}
     function normalizeState(){state.assets.forEach(a=>{if(a.useDate===undefined)a.useDate='';if(a.warrantyMonths===undefined)a.warrantyMonths=12})}
@@ -187,16 +209,25 @@
       document.getElementById('warrantyMonthsInput').value=asset.warrantyMonths||0;
     }
     function showUpdateForm(code){
-      document.getElementById('updatePanel').style.display='block';
+      document.getElementById('updatePanel').style.display='flex';
       document.getElementById('assetSelect').value=code;
       syncSelectedAsset();
-      document.getElementById('updatePanel').scrollIntoView({behavior:'smooth',block:'start'});
     }
     function deleteAsset(code){
       const asset=state.assets.find(a=>a.code===code);
-      if(!asset||!confirm('Xóa tài sản '+code+'?'))return;
+      if(!asset)return;
+      pendingDeleteCode=code;
+      document.getElementById('deleteAssetText').textContent=asset.code+' - '+asset.name;
+      document.getElementById('deletePanel').style.display='flex';
+    }
+    function confirmDeleteAsset(){
+      const code=pendingDeleteCode;
+      const asset=state.assets.find(a=>a.code===code);
+      if(!asset)return;
       state.assets=state.assets.filter(a=>a.code!==code);
       state.history.unshift({code,action:'Xóa tài sản',note:asset.name,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
+      pendingDeleteCode='';
+      document.getElementById('deletePanel').style.display='none';
       saveState();render();
     }
     function render(){
@@ -229,6 +260,10 @@
     }
     document.getElementById('searchInput').addEventListener('input',render);
     document.getElementById('assetSelect').addEventListener('change',syncSelectedAsset);
+    document.getElementById('closeUpdateBtn').addEventListener('click',()=>document.getElementById('updatePanel').style.display='none');
+    document.getElementById('cancelDeleteBtn').addEventListener('click',()=>document.getElementById('deletePanel').style.display='none');
+    document.getElementById('confirmDeleteBtn').addEventListener('click',confirmDeleteAsset);
+    document.querySelectorAll('.modal').forEach(modal=>modal.addEventListener('click',e=>{if(e.target===modal)modal.style.display='none'}));
     document.getElementById('assetRows').addEventListener('click',e=>{
       const btn=e.target.closest('button[data-action]');
       if(!btn)return;
@@ -281,6 +316,7 @@
       asset.warrantyMonths=warrantyMonths;
       state.history.unshift({code,action:'Cập nhật: '+status,note,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
       document.getElementById('noteInput').value='';
+      document.getElementById('updatePanel').style.display='none';
       saveState();render();
     });
     document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('Khôi phục dữ liệu mẫu?')){state=JSON.parse(JSON.stringify(seed));normalizeState();saveState();render()}});
