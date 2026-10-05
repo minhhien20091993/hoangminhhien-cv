@@ -79,38 +79,6 @@
         <div class="card danger"><span>Hỏng / ngưng dùng</span><strong id="brokenAssets">0</strong></div>
       </section>
 
-      <div class="panel" id="addPanel" style="display:none;margin-bottom:16px;">
-        <div class="panel-head"><h3>Thêm tài sản mới</h3></div>
-        <form id="addAssetForm">
-          <div class="form-row">
-            <label>Mã tài sản<input id="newCode" placeholder="VD: TS-007" required></label>
-            <label>Tên thiết bị<input id="newName" placeholder="VD: Máy tính phòng khám 01" required></label>
-          </div>
-          <div class="form-row">
-            <label>Nhóm thiết bị<input id="newCategory" placeholder="CNTT, Mạng, Thiết bị ngoại vi..." required></label>
-            <label>Khoa/phòng<input id="newDepartment" placeholder="VD: Khoa Nội tổng hợp" required></label>
-          </div>
-          <div class="form-row">
-            <label>Người phụ trách<input id="newOwner" placeholder="VD: Tổ IT / Điều dưỡng trưởng" required></label>
-            <label>Ngày bảo trì kế tiếp<input id="newNextService" type="date"></label>
-          </div>
-          <div class="form-row">
-            <label>Ngày sử dụng<input id="newUseDate" type="date"></label>
-            <label>Thời gian bảo hành (tháng)<input id="newWarrantyMonths" type="number" min="0" value="12"></label>
-          </div>
-          <div class="form-row">
-            <label>Tình trạng<select id="newStatus">
-              <option value="Đang sử dụng">Đang sử dụng</option>
-              <option value="Cần bảo trì">Cần bảo trì</option>
-              <option value="Đang sửa chữa">Đang sửa chữa</option>
-              <option value="Hỏng / ngưng dùng">Hỏng / ngưng dùng</option>
-            </select></label>
-            <label>Giá trị ước tính<input id="newValue" type="number" min="0" value="0"></label>
-          </div>
-          <button type="submit">Lưu tài sản mới</button>
-        </form>
-      </div>
-
       <section class="workspace">
         <div class="panel">
           <div class="panel-head">
@@ -131,6 +99,43 @@
 
       </section>
     </main>
+  </div>
+
+  <div class="modal" id="addPanel">
+    <div class="modal-card">
+      <div class="panel-head"><div><h3>Thêm tài sản mới</h3><p>Nhập thông tin thiết bị cần theo dõi</p></div></div>
+      <form id="addAssetForm">
+        <div class="form-row">
+          <label>Mã tài sản<input id="newCode" placeholder="VD: TS-007" required></label>
+          <label>Tên thiết bị<input id="newName" placeholder="VD: Máy tính phòng khám 01" required></label>
+        </div>
+        <div class="form-row">
+          <label>Nhóm thiết bị<input id="newCategory" placeholder="CNTT, Mạng, Thiết bị ngoại vi..." required></label>
+          <label>Khoa/phòng<input id="newDepartment" placeholder="VD: Khoa Nội tổng hợp" required></label>
+        </div>
+        <div class="form-row">
+          <label>Người phụ trách<input id="newOwner" placeholder="VD: Tổ IT / Điều dưỡng trưởng" required></label>
+          <label>Ngày bảo trì kế tiếp<input id="newNextService" type="date"></label>
+        </div>
+        <div class="form-row">
+          <label>Ngày sử dụng<input id="newUseDate" type="date"></label>
+          <label>Thời gian bảo hành (tháng)<input id="newWarrantyMonths" type="number" min="0" value="12"></label>
+        </div>
+        <div class="form-row">
+          <label>Tình trạng<select id="newStatus">
+            <option value="Đang sử dụng">Đang sử dụng</option>
+            <option value="Cần bảo trì">Cần bảo trì</option>
+            <option value="Đang sửa chữa">Đang sửa chữa</option>
+            <option value="Hỏng / ngưng dùng">Hỏng / ngưng dùng</option>
+          </select></label>
+          <label>Giá trị ước tính<input id="newValue" type="number" min="0" value="0"></label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="secondary" id="closeAddBtn">Đóng</button>
+          <button type="submit">Lưu tài sản mới</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div class="modal" id="updatePanel">
@@ -260,6 +265,7 @@
     }
     document.getElementById('searchInput').addEventListener('input',render);
     document.getElementById('assetSelect').addEventListener('change',syncSelectedAsset);
+    document.getElementById('closeAddBtn').addEventListener('click',()=>document.getElementById('addPanel').style.display='none');
     document.getElementById('closeUpdateBtn').addEventListener('click',()=>document.getElementById('updatePanel').style.display='none');
     document.getElementById('cancelDeleteBtn').addEventListener('click',()=>document.getElementById('deletePanel').style.display='none');
     document.getElementById('confirmDeleteBtn').addEventListener('click',confirmDeleteAsset);
@@ -271,8 +277,8 @@
       if(btn.dataset.action==='delete')deleteAsset(btn.dataset.code);
     });
     document.getElementById('addToggleBtn').addEventListener('click',()=>{
-      const panel=document.getElementById('addPanel');
-      panel.style.display=panel.style.display==='none'?'block':'none';
+      document.getElementById('addPanel').style.display='flex';
+      document.getElementById('newCode').focus();
     });
     document.getElementById('addAssetForm').addEventListener('submit',e=>{
       e.preventDefault();
@@ -298,6 +304,7 @@
       e.target.reset();
       document.getElementById('newValue').value=0;
       document.getElementById('newWarrantyMonths').value=12;
+      document.getElementById('addPanel').style.display='none';
       saveState();render();
     });
     document.getElementById('assetForm').addEventListener('submit',e=>{
