@@ -276,6 +276,7 @@
     display:flex;flex-direction:column;
     transition:box-shadow .18s ease, transform .18s ease, border-color .18s ease;
   }
+  .pf-card-link{color:inherit;text-decoration:none;cursor:pointer;}
   .pf-card:hover{box-shadow:0 14px 30px -16px rgba(27,32,39,.35);border-color:var(--line);transform:translateY(-2px);}
   .pf-card .pf-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1;}
 
@@ -430,7 +431,6 @@
     <nav class="tabs">
       <button class="active" data-view="cv"><span class="idx">01</span> cv.view</button>
       <button data-view="pf"><span class="idx">02</span> portfolio.view</button>
-      <a href="metro-hcm/"><span class="idx">03</span> metro-hcm</a>
     </nav>
 
     <div class="lang-switch" id="langSwitch">
@@ -1333,8 +1333,12 @@
         row.className = 'pf-row';
         pfList.appendChild(row);
       }
-      const el = document.createElement('div');
-      el.className = 'pf-card';
+      const el = document.createElement(p.url ? 'a' : 'div');
+      el.className = 'pf-card' + (p.url ? ' pf-card-link' : '');
+      if(p.url){
+        el.href = p.url;
+        el.setAttribute('aria-label', p.title || 'Mở dự án');
+      }
       el.innerHTML = `
         <div class="pf-image${p.image ? ' has-image' : ''}" data-proj-img="${i}">
           ${p.image
