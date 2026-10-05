@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý tài sản bệnh viện</title>
+  <style>
+    :root{--bg:#0f172a;--panel:#fff;--soft:#f8fafc;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--accent:#0f766e;--accent-2:#0d9488;--warn:#d97706;--danger:#dc2626;--ok:#059669;--radius:8px}
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e5e7eb;color:var(--ink)}
+    .app{min-height:100vh;display:grid;grid-template-columns:270px 1fr}aside{background:var(--bg);color:#cbd5e1;padding:24px 20px}
+    .brand h1{margin:0;color:#fff;font-size:22px;line-height:1.25}.brand p{margin:8px 0 0;color:#94a3b8;font-size:13px;line-height:1.55}
+    .back{display:inline-flex;margin-top:18px;color:#99f6e4;text-decoration:none;font-size:13px}.side-section{margin-top:30px}
+    .side-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:10px}
+    .quick-stat{border:1px solid #243244;border-radius:var(--radius);padding:12px;margin-bottom:10px;background:#162032}
+    .quick-stat span{display:block;font-size:12px;color:#94a3b8}.quick-stat strong{display:block;margin-top:4px;font-size:20px;color:#fff}
+    main{padding:24px;overflow:auto}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .title h2{margin:0;font-size:26px}.title p{margin:6px 0 0;color:var(--muted);font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+    button{border:0;border-radius:var(--radius);padding:10px 14px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;font-size:14px}
+    button:hover{background:var(--accent-2)}button.secondary{background:#e2e8f0;color:#0f172a}button.secondary:hover{background:#cbd5e1}
+    .cards{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:14px;margin-bottom:18px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}.card span{display:block;color:var(--muted);font-size:13px}.card strong{display:block;margin-top:8px;font-size:26px}
+    .card.ok strong{color:var(--ok)}.card.warn strong{color:var(--warn)}.card.danger strong{color:var(--danger)}
+    .workspace{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+    .panel-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--soft)}
+    .panel-head h3{margin:0;font-size:16px}.search{width:280px;max-width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px;font-size:14px}
+    table{width:100%;border-collapse:collapse}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
+    th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:#f8fafc}tr:last-child td{border-bottom:0}
+    .asset-code{font-family:Consolas,monospace;color:#334155}.muted{color:var(--muted);font-size:12px;margin-top:3px}
+    .badge{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;background:#dcfce7;color:#166534;white-space:nowrap}
+    .badge.warn{background:#fef3c7;color:#92400e}.badge.danger{background:#fee2e2;color:#991b1b}.badge.info{background:#dbeafe;color:#1d4ed8}
+    form{padding:16px;display:grid;gap:12px}label{display:grid;gap:6px;font-size:13px;color:#334155;font-weight:700}
+    input,select{width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:10px 11px;font-size:14px;background:#fff}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.history{padding:0 16px 16px}
+    .log{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.log:last-child{border-bottom:0}.log span{color:var(--muted)}
+    @media(max-width:1050px){.app{grid-template-columns:1fr}.workspace{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(160px,1fr))}}
+    @media(max-width:620px){main{padding:14px}.toolbar{align-items:flex-start;flex-direction:column}.cards{grid-template-columns:1fr}th:nth-child(3),td:nth-child(3){display:none}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <h1>Quản lý tài sản</h1>
+        <p>Demo quản lý tài sản, thiết bị CNTT và thiết bị vận hành trong môi trường bệnh viện.</p>
+        <a class="back" href="../">← Về trang CV chính</a>
+      </div>
+      <div class="side-section">
+        <div class="side-title">Tóm tắt nhanh</div>
+        <div class="quick-stat"><span>Tổng tài sản</span><strong id="sideTotal">0</strong></div>
+        <div class="quick-stat"><span>Cần bảo trì</span><strong id="sideMaintenance">0</strong></div>
+        <div class="quick-stat"><span>Giá trị ước tính</span><strong id="sideValue">0</strong></div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="toolbar">
+        <div class="title">
+          <h2>Quản lý tài sản bệnh viện</h2>
+          <p>Theo dõi thiết bị theo khoa/phòng, tình trạng sử dụng, người phụ trách và lịch bảo trì.</p>
+        </div>
+        <div class="actions">
+          <button class="secondary" id="resetBtn">Khôi phục mẫu</button>
+          <button id="exportBtn">Xuất CSV</button>
+        </div>
+      </div>
+
+      <section class="cards">
+        <div class="card"><span>Tổng tài sản</span><strong id="totalAssets">0</strong></div>
+        <div class="card ok"><span>Đang sử dụng</span><strong id="activeAssets">0</strong></div>
+        <div class="card warn"><span>Cần bảo trì</span><strong id="maintenanceAssets">0</strong></div>
+        <div class="card danger"><span>Hỏng / ngưng dùng</span><strong id="brokenAssets">0</strong></div>
+      </section>
+
+      <section class="workspace">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Danh sách tài sản</h3>
+            <input class="search" id="searchInput" placeholder="Tìm mã, thiết bị, khoa/phòng...">
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Mã tài sản</th><th>Thiết bị</th><th>Khoa/phòng</th><th>Người phụ trách</th><th>Bảo trì kế tiếp</th><th>Tình trạng</th>
+              </tr>
+            </thead>
+            <tbody id="assetRows"></tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Cập nhật tài sản</h3></div>
+          <form id="assetForm">
+            <label>Tài sản<select id="assetSelect"></select></label>
+            <div class="form-row">
+              <label>Tình trạng<select id="assetStatus">
+                <option value="Đang sử dụng">Đang sử dụng</option>
+                <option value="Cần bảo trì">Cần bảo trì</option>
+                <option value="Đang sửa chữa">Đang sửa chữa</option>
+                <option value="Hỏng / ngưng dùng">Hỏng / ngưng dùng</option>
+              </select></label>
+              <label>Ngày bảo trì<input id="nextService" type="date"></label>
+            </div>
+            <label>Ghi chú<input id="noteInput" placeholder="VD: thay pin UPS, kiểm tra máy in khoa khám bệnh..."></label>
+            <button type="submit">Cập nhật thông tin</button>
+          </form>
+          <div class="panel-head"><h3>Lịch sử gần đây</h3></div>
+          <div class="history" id="historyList"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'hmh-hospital-asset-demo';
+    const seed = {
+      assets: [
+        {code:'TS-001', name:'Máy tính quầy tiếp nhận', category:'CNTT', department:'Khoa Khám bệnh', owner:'Tổ IT', status:'Đang sử dụng', nextService:'2026-11-15', value:12500000},
+        {code:'TS-002', name:'Máy in mã vạch vòng tay', category:'Thiết bị ngoại vi', department:'Cấp cứu', owner:'Điều dưỡng trưởng', status:'Cần bảo trì', nextService:'2026-10-12', value:6800000},
+        {code:'TS-003', name:'UPS 2KVA phòng server', category:'Nguồn dự phòng', department:'Phòng CNTT', owner:'Tổ IT', status:'Đang sử dụng', nextService:'2026-12-01', value:14500000},
+        {code:'TS-004', name:'Switch core 24 port', category:'Mạng', department:'Phòng CNTT', owner:'Tổ IT', status:'Đang sử dụng', nextService:'2026-11-01', value:22000000},
+        {code:'TS-005', name:'Máy tính trạm HIS', category:'CNTT', department:'Khoa Xét nghiệm', owner:'KTV xét nghiệm', status:'Đang sửa chữa', nextService:'2026-10-08', value:11800000},
+        {code:'TS-006', name:'Máy in laser hành chính', category:'Thiết bị văn phòng', department:'Phòng Hành chính', owner:'Văn thư', status:'Hỏng / ngưng dùng', nextService:'', value:3900000}
+      ],
+      history: [
+        {code:'TS-002', action:'Đánh dấu cần bảo trì', note:'In tem bị lệch, cần kiểm tra đầu in', time:'08:20'},
+        {code:'TS-005', action:'Chuyển sửa chữa', note:'Máy không khởi động ổn định', time:'07:50'}
+      ]
+    };
+    let state = loadState();
+    function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw)return JSON.parse(raw)}catch(e){}return JSON.parse(JSON.stringify(seed))}
+    function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+    function money(n){return new Intl.NumberFormat('vi-VN').format(n)+' đ'}
+    function badgeClass(status){if(status==='Cần bảo trì')return 'warn';if(status==='Đang sửa chữa')return 'info';if(status==='Hỏng / ngưng dùng')return 'danger';return ''}
+    function render(){
+      const q=document.getElementById('searchInput').value.trim().toLowerCase();
+      const filtered=state.assets.filter(a=>[a.code,a.name,a.category,a.department,a.owner,a.status].join(' ').toLowerCase().includes(q));
+      document.getElementById('assetRows').innerHTML=filtered.map(a=>`<tr>
+        <td class="asset-code">${a.code}<div class="muted">${a.category}</div></td>
+        <td><strong>${a.name}</strong></td><td>${a.department}</td><td>${a.owner}</td>
+        <td>${a.nextService||'Chưa đặt lịch'}</td><td><span class="badge ${badgeClass(a.status)}">${a.status}</span></td>
+      </tr>`).join('');
+      document.getElementById('assetSelect').innerHTML=state.assets.map(a=>`<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+      const active=state.assets.filter(a=>a.status==='Đang sử dụng').length;
+      const maintenance=state.assets.filter(a=>a.status==='Cần bảo trì'||a.status==='Đang sửa chữa').length;
+      const broken=state.assets.filter(a=>a.status==='Hỏng / ngưng dùng').length;
+      const value=state.assets.reduce((sum,a)=>sum+a.value,0);
+      document.getElementById('totalAssets').textContent=state.assets.length;
+      document.getElementById('activeAssets').textContent=active;
+      document.getElementById('maintenanceAssets').textContent=maintenance;
+      document.getElementById('brokenAssets').textContent=broken;
+      document.getElementById('sideTotal').textContent=state.assets.length;
+      document.getElementById('sideMaintenance').textContent=maintenance;
+      document.getElementById('sideValue').textContent=money(value);
+      document.getElementById('historyList').innerHTML=state.history.slice(0,8).map(log=>{
+        const asset=state.assets.find(a=>a.code===log.code);
+        return `<div class="log"><div><strong>${log.action}</strong><br><span>${asset?asset.name:log.code} · ${log.note||'Không có ghi chú'}</span></div><span>${log.time}</span></div>`;
+      }).join('')||'<div class="log"><span>Chưa có lịch sử.</span></div>';
+    }
+    document.getElementById('searchInput').addEventListener('input',render);
+    document.getElementById('assetForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      const code=document.getElementById('assetSelect').value;
+      const status=document.getElementById('assetStatus').value;
+      const nextService=document.getElementById('nextService').value;
+      const note=document.getElementById('noteInput').value.trim();
+      const asset=state.assets.find(a=>a.code===code);
+      if(!asset)return;
+      asset.status=status;
+      if(nextService)asset.nextService=nextService;
+      state.history.unshift({code,action:'Cập nhật: '+status,note,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
+      document.getElementById('noteInput').value='';
+      saveState();render();
+    });
+    document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('Khôi phục dữ liệu mẫu?')){state=JSON.parse(JSON.stringify(seed));saveState();render()}});
+    document.getElementById('exportBtn').addEventListener('click',()=>{
+      const rows=[['Ma tai san','Ten thiet bi','Nhom','Khoa phong','Nguoi phu trach','Tinh trang','Bao tri ke tiep','Gia tri']];
+      state.assets.forEach(a=>rows.push([a.code,a.name,a.category,a.department,a.owner,a.status,a.nextService,a.value]));
+      const csv=rows.map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='quan-ly-tai-san-benh-vien.csv';a.click();URL.revokeObjectURL(url);
+    });
+    render();
+  </script>
+</body>
+</html>
