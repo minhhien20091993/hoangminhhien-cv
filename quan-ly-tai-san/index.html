@@ -28,6 +28,7 @@
     .asset-code{font-family:Consolas,monospace;color:#334155}.muted{color:var(--muted);font-size:12px;margin-top:3px}
     .badge{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;background:#dcfce7;color:#166534;white-space:nowrap}
     .badge.warn{background:#fef3c7;color:#92400e}.badge.danger{background:#fee2e2;color:#991b1b}.badge.info{background:#dbeafe;color:#1d4ed8}
+    .row-actions{display:flex;gap:6px;flex-wrap:wrap}.row-actions button{padding:7px 10px;font-size:12px}.row-actions .delete{background:#fee2e2;color:#991b1b}.row-actions .delete:hover{background:#fecaca}
     form{padding:16px;display:grid;gap:12px}label{display:grid;gap:6px;font-size:13px;color:#334155;font-weight:700}
     input,select{width:100%;border:1px solid var(--line);border-radius:var(--radius);padding:10px 11px;font-size:14px;background:#fff}
     .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.history{padding:0 16px 16px}
@@ -113,14 +114,14 @@
           <table>
             <thead>
               <tr>
-                <th>Mã tài sản</th><th>Thiết bị</th><th>Khoa/phòng</th><th>Người phụ trách</th><th>Bảo hành</th><th>Bảo trì kế tiếp</th><th>Tình trạng</th>
+                <th>Mã tài sản</th><th>Thiết bị</th><th>Khoa/phòng</th><th>Người phụ trách</th><th>Bảo hành</th><th>Bảo trì kế tiếp</th><th>Tình trạng</th><th>Thao tác</th>
               </tr>
             </thead>
             <tbody id="assetRows"></tbody>
           </table>
         </div>
 
-        <div class="panel">
+        <div class="panel" id="updatePanel" style="display:none;">
           <div class="panel-head"><h3>Cập nhật tài sản</h3></div>
           <form id="assetForm">
             <label>Tài sản<select id="assetSelect"></select></label>
@@ -180,6 +181,19 @@
       document.getElementById('useDateInput').value=asset.useDate||'';
       document.getElementById('warrantyMonthsInput').value=asset.warrantyMonths||0;
     }
+    function showUpdateForm(code){
+      document.getElementById('updatePanel').style.display='block';
+      document.getElementById('assetSelect').value=code;
+      syncSelectedAsset();
+      document.getElementById('updatePanel').scrollIntoView({behavior:'smooth',block:'start'});
+    }
+    function deleteAsset(code){
+      const asset=state.assets.find(a=>a.code===code);
+      if(!asset||!confirm('Xóa tài sản '+code+'?'))return;
+      state.assets=state.assets.filter(a=>a.code!==code);
+      state.history.unshift({code,action:'Xóa tài sản',note:asset.name,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})});
+      saveState();render();
+    }
     function render(){
       const q=document.getElementById('searchInput').value.trim().toLowerCase();
       const filtered=state.assets.filter(a=>[a.code,a.name,a.category,a.department,a.owner,a.status].join(' ').toLowerCase().includes(q));
@@ -188,9 +202,10 @@
         <td><strong>${a.name}</strong></td><td>${a.department}</td><td>${a.owner}</td>
         <td>${formatDate(a.useDate)}<div class="muted">${a.warrantyMonths||0} tháng · Hết BH: ${formatDate(warrantyEnd(a))}</div></td>
         <td>${a.nextService||'Chưa đặt lịch'}</td><td><span class="badge ${badgeClass(a.status)}">${a.status}</span></td>
+        <td><div class="row-actions"><button type="button" data-action="edit" data-code="${a.code}">Cập nhật</button><button type="button" class="delete" data-action="delete" data-code="${a.code}">Xóa</button></div></td>
       </tr>`).join('');
       document.getElementById('assetSelect').innerHTML=state.assets.map(a=>`<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
-      syncSelectedAsset();
+      if(state.assets.length)syncSelectedAsset();
       const active=state.assets.filter(a=>a.status==='Đang sử dụng').length;
       const maintenance=state.assets.filter(a=>a.status==='Cần bảo trì'||a.status==='Đang sửa chữa').length;
       const broken=state.assets.filter(a=>a.status==='Hỏng / ngưng dùng').length;
@@ -209,6 +224,12 @@
     }
     document.getElementById('searchInput').addEventListener('input',render);
     document.getElementById('assetSelect').addEventListener('change',syncSelectedAsset);
+    document.getElementById('assetRows').addEventListener('click',e=>{
+      const btn=e.target.closest('button[data-action]');
+      if(!btn)return;
+      if(btn.dataset.action==='edit')showUpdateForm(btn.dataset.code);
+      if(btn.dataset.action==='delete')deleteAsset(btn.dataset.code);
+    });
     document.getElementById('addToggleBtn').addEventListener('click',()=>{
       const panel=document.getElementById('addPanel');
       panel.style.display=panel.style.display==='none'?'block':'none';
